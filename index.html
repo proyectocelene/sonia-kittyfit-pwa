@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Sonia KittyFit 🎀</title>
+  <meta name="description" content="PWA de Nutrición y Entrenamiento de Sonia. Temática de Hello Kitty y Sanrio.">
+  <meta name="theme-color" content="#ffccd5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Sonia KittyFit">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Background Cute Elements -->
+  <div class="bg-bows"></div>
+  <div class="bg-hearts"></div>
+
+  <!-- App Wrapper -->
+  <div class="app-container">
+    
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="header-logo">
+        <div class="kitty-icon-wrapper">
+          <svg viewBox="0 0 100 100" class="kitty-head-svg">
+            <path d="M 15 45 C 10 30, 20 20, 30 25 C 40 22, 60 22, 70 25 C 80 20, 90 30, 85 45 C 92 55, 92 70, 80 80 C 70 85, 30 85, 20 80 C 8 70, 8 55, 15 45 Z" fill="#ffffff" stroke="#ff85a1" stroke-width="3"/>
+            <ellipse cx="38" cy="55" rx="3.5" ry="5" fill="#333333"/>
+            <ellipse cx="62" cy="55" rx="3.5" ry="5" fill="#333333"/>
+            <ellipse cx="50" cy="62" rx="4" ry="2.5" fill="#ffd166" stroke="#e09f00" stroke-width="1"/>
+            <!-- Whiskers -->
+            <line x1="18" y1="56" x2="6" y2="55" stroke="#333333" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="18" y1="62" x2="5" y2="64" stroke="#333333" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="18" y1="68" x2="7" y2="73" stroke="#333333" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="82" y1="56" x2="94" y2="55" stroke="#333333" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="82" y1="62" x2="95" y2="64" stroke="#333333" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="82" y1="68" x2="93" y2="73" stroke="#333333" stroke-width="2.5" stroke-linecap="round"/>
+            <!-- Bow -->
+            <g transform="translate(62, 22) rotate(15)">
+              <path d="M -15 -15 C -25 -25, -25 5, -15 -5 L -5 -10 Z" fill="#ff4d6d" stroke="#c9184a" stroke-width="2"/>
+              <path d="M 15 -15 C 25 -25, 25 5, 15 -5 L 5 -10 Z" fill="#ff4d6d" stroke="#c9184a" stroke-width="2"/>
+              <circle cx="0" cy="-10" r="7" fill="#ff758f" stroke="#c9184a" stroke-width="2"/>
+            </g>
+          </svg>
+        </div>
+        <h1>Sonia KittyFit <span>PWA</span></h1>
+      </div>
+      <div class="header-actions">
+        <span class="day-cycle-badge" id="cycling-badge">Día Base 🎀</span>
+        <button id="theme-toggle" class="btn-icon" title="Cambiar Tema"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="app-main">
+      
+      <!-- TAB 1: DASHBOARD -->
+      <section id="tab-dashboard" class="tab-content active">
+        <!-- Funny Passive-Aggressive Sarcastic Bubble -->
+        <div class="sarcastic-bubble-card">
+          <div class="kitty-avatar-sarcastic">🎀🐱</div>
+          <div class="bubble-speech">
+            <p id="kitty-passive-quote">"A ver, Sonia, ¿cuántas toneladas pesaste hoy? Digo, kilos..."</p>
+          </div>
+        </div>
+
+        <div class="welcome-card">
+          <div class="welcome-text">
+            <h2>¡Hola, Sonia! 🩺🎀</h2>
+            <p>Médica de Servicio Social. ¡A quemar grasa, que ese sillón del centro de salud no lo hará solo!</p>
+          </div>
+          <div class="welcome-avatar">
+            <div class="doctor-kitty">
+              <div class="kitty-bow"></div>
+              <div class="kitty-stethoscope"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Biometrics Row -->
+        <div class="grid-2-cols">
+          <div class="metric-card bg-soft-pink">
+            <div class="metric-icon"><i class="fa-solid fa-weight-scale"></i></div>
+            <div class="metric-info">
+              <h3>Peso Actual</h3>
+              <p class="metric-value"><span id="dash-weight">80.0</span> kg</p>
+              <span class="metric-sub" id="dash-weight-goal">Meta Ideal: 68.1 kg</span>
+            </div>
+          </div>
+          <div class="metric-card bg-soft-purple">
+            <div class="metric-icon"><i class="fa-solid fa-percent"></i></div>
+            <div class="metric-info">
+              <h3>Grasa Corporal</h3>
+              <p class="metric-value"><span id="dash-fat-pct">31.8</span> %</p>
+              <span class="metric-sub" id="dash-muscle-mass">Masa Magra: 54.6 kg</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- IMC & Status Card -->
+        <div class="imc-card-interactive" id="imc-card-container">
+          <div class="imc-card-inner">
+            <div class="imc-visual-scale">
+              <div class="scale-base"></div>
+              <div class="scale-beam" id="scale-beam-rot">
+                <div class="scale-plate-left"><i class="fa-solid fa-apple-whole"></i></div>
+                <div class="scale-plate-right"><i class="fa-solid fa-dumbbell"></i></div>
+              </div>
+              <div class="scale-indicator-kitty">🐱🎀</div>
+            </div>
+            <div class="imc-text-content">
+              <div class="imc-header">
+                <h3>Tu Estado Corporal</h3>
+                <span class="badge" id="imc-badge">Sobrepeso</span>
+              </div>
+              <div class="imc-body-horizontal">
+                <div class="imc-value-box-new">
+                  <span class="imc-num" id="imc-value">25.8</span>
+                  <span class="imc-label">IMC</span>
+                </div>
+                <p id="imc-advice" class="imc-funny-advice">Cargando consejos pasivo-agresivos...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Daily Caloric Ring and Macros Progress -->
+        <div class="section-title">
+          <h3 style="display: flex; justify-content: space-between; width: 100%;">
+            <span>Progreso Diario de Nutrición 🍓</span>
+            <span style="font-size: 0.75rem; color: var(--pink-dark);" id="cycle-today-type">Día Bajo (1506 kcal)</span>
+          </h3>
+        </div>
+
+        <div class="nutrition-card">
+          <div class="cal-circle-container">
+            <svg class="progress-ring" width="140" height="140">
+              <circle class="progress-ring__background" stroke="#ffe5ec" stroke-width="12" fill="transparent" r="60" cx="70" cy="70"/>
+              <circle class="progress-ring__circle" id="cal-progress" stroke="#ff4d6d" stroke-width="12" stroke-linecap="round" fill="transparent" r="60" cx="70" cy="70"/>
+            </svg>
+            <div class="cal-inner-text">
+              <span class="cal-eaten" id="dash-cal-eaten">0</span>
+              <span class="cal-divider">/</span>
+              <span class="cal-target" id="dash-cal-target">1506</span>
+              <span class="cal-unit">kcal</span>
+            </div>
+          </div>
+          <div id="dash-cal-balance" style="font-size: 0.72rem; font-weight: bold; color: var(--pink-deep); text-align: center; margin-top: 6px; font-family: var(--font-title);">Te faltan 1506 kcal</div>
+
+          <!-- Macros bars -->
+          <div class="macros-container">
+            <div class="macro-bar-group">
+              <div class="macro-label">
+                <span>Proteínas</span>
+                <span><span id="dash-p-eaten">0</span>g / <span id="dash-p-target">113</span>g</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill bg-protein" id="bar-protein" style="width: 0%"></div>
+              </div>
+            </div>
+            <div class="macro-bar-group">
+              <div class="macro-label">
+                <span>Carbohidratos</span>
+                <span><span id="dash-c-eaten">0</span>g / <span id="dash-c-target">214</span>g</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill bg-carb" id="bar-carb" style="width: 0%"></div>
+              </div>
+            </div>
+            <div class="macro-bar-group">
+              <div class="macro-label">
+                <span>Grasas</span>
+                <span><span id="dash-f-eaten">0</span>g / <span id="dash-f-target">62</span>g</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill bg-fat" id="bar-fat" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Water Intake & Active Workout Quick Log -->
+        <div class="grid-2-cols">
+          <!-- Water Tracker -->
+          <div class="quick-card water-card">
+            <div class="quick-header">
+              <h4>Hidratación 💧</h4>
+              <span id="water-progress-text">0 / 2.6L</span>
+            </div>
+            <div class="water-kitty-visual">
+              <div class="water-glass" id="water-fill-glass">
+                <div class="water-content" id="water-fill-height" style="height: 0%"></div>
+              </div>
+              <button id="add-water-btn" class="btn-primary-small"><i class="fa-solid fa-plus"></i> +250ml</button>
+            </div>
+            <p class="quick-hint">Meta: 2.4 - 2.8 Litros (10 vasos)</p>
+          </div>
+
+          <!-- Active Training -->
+          <div class="quick-card training-quick-card">
+            <div class="quick-header">
+              <h4>Hoy Toca 💪</h4>
+              <span id="today-routine-name">Día A</span>
+            </div>
+            <div class="training-quick-body">
+              <div class="workout-bubble">
+                <i class="fa-solid fa-dumbbell"></i>
+                <p id="today-workout-focus">Cadena Anterior</p>
+              </div>
+              <button id="go-workout-btn" class="btn-primary-small">Ir a Entrenar <i class="fa-solid fa-arrow-right"></i></button>
+            </div>
+            <p class="quick-hint" id="overload-hint">¡A entrenar, gordis!</p>
+          </div>
+        </div>
+
+        <!-- Quick Log Weight / HR Modal Trigger -->
+        <div class="quick-actions-bar">
+          <button class="btn-floating" id="open-log-modal-btn"><i class="fa-solid fa-plus"></i> Registrar Datos</button>
+        </div>
+      </section>
+
+      <!-- TAB 2: DIETA (Rediseñada) -->
+      <section id="tab-diet" class="tab-content">
+        <div class="section-header-cute">
+          <h2>Plan Nutricional 🥗🎀</h2>
+          <p id="diet-cycling-desc">Hoy es Día Bajo. Meta: 1506 kcal para control de grasa.</p>
+        </div>
+
+        <!-- Week Day Selector Navigation -->
+        <div class="day-selector-container">
+          <div class="day-scroll">
+            <button class="day-tab active" data-day="Lunes">Lun</button>
+            <button class="day-tab" data-day="Martes">Mar</button>
+            <button class="day-tab" data-day="Miércoles">Mié</button>
+            <button class="day-tab" data-day="Jueves">Jue</button>
+            <button class="day-tab" data-day="Viernes">Vie</button>
+            <button class="day-tab" data-day="Sábado">Sáb</button>
+            <button class="day-tab" data-day="Domingo">Dom</button>
+          </div>
+        </div>
+
+        <!-- Calories & Macros info for Selected Day -->
+        <div class="diet-summary-pill" id="diet-summary-pill-box">
+          <div class="diet-kcal-tag"><strong id="diet-target-kcal">1506 kcal</strong></div>
+          <div class="diet-macros-tag" id="diet-target-macros">🍗 113g P | 🌾 214g C | 🥑 62g G</div>
+          <button id="reset-equiv-btn" class="btn-secondary" style="padding: 3px 8px; font-size:0.6rem; flex-shrink:0;"><i class="fa-solid fa-rotate-left"></i> Reiniciar</button>
+        </div>
+
+        <!-- Portion Progress Rings Summary -->
+        <div class="equivalents-card" style="padding: 12px; border-color: var(--pink-bright);">
+          <div class="equiv-header" style="margin-bottom: 8px;">
+            <h3 style="font-size:0.85rem;">Raciones Restantes Hoy 🎯</h3>
+            <span class="badge badge-yellow">Progreso Diario</span>
+          </div>
+          <div class="diet-portions-summary" id="diet-portions-summary-container">
+            <!-- Dynamically populated portion rings -->
+          </div>
+        </div>
+
+        <!-- Main Diet Layout (responsive two-column on 1024px+) -->
+        <div class="diet-main-layout">
+          <!-- LEFT COLUMN: Meals + Voice -->
+          <div class="diet-left-col">
+            <!-- 5-Meal Schedule -->
+            <div class="meals-list" id="meals-list-container">
+              <!-- Dynamically populated meals -->
+            </div>
+
+            <!-- Global Voice Logger -->
+            <div class="equivalents-card" style="border-color: var(--pink-bright);">
+              <div class="equiv-header">
+                <h3 style="font-size:0.85rem;">Registro de Comida por Voz 🎙️</h3>
+                <span class="badge badge-yellow" id="voice-status">Listo</span>
+              </div>
+              <p class="equiv-desc">Dicta qué comiste (ej: "Desayuné 1 huevo revuelto y 2 tortillas"). La IA organizará las raciones del SMAE.</p>
+              <button id="btn-voice-mic" class="btn-primary" style="background-color: var(--pink-dark); width: 100%;">
+                <i class="fa-solid fa-microphone" id="mic-icon"></i> <span id="mic-text">Empezar a Dictar</span>
+              </button>
+              <div id="voice-transcription-box" class="voice-transcribe-preview hidden">
+                <p><strong>Escuchado:</strong> "<span id="voice-text-result">...</span>"</p>
+                <div class="chat-typing-indicator" id="voice-loading" style="padding:0; margin-top:8px;">
+                  <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                  <span>Procesando raciones con la IA...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT COLUMN: Kitchen Resources (always visible on 1024px+) -->
+          <div class="diet-right-col">
+            <!-- COLLAPSIBLE KITCHEN RESOURCES ACCORDION -->
+            <div class="equivalents-card" id="kitchen-resources-card" style="border-color: var(--pink-medium);">
+              <div class="equiv-header" onclick="window.toggleKitchenResources()" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <h3 style="margin: 0; color: var(--pink-deep); font-size: 0.85rem; display: flex; align-items: center; gap: 8px;">
+                  <i class="fa-solid fa-kitchen-sink"></i> Alacena y Compras
+                </h3>
+                <span id="kitchen-chevron" style="color: var(--pink-deep); transition: transform 0.2s;"><i class="fa-solid fa-chevron-down"></i></span>
+              </div>
+              
+              <div id="kitchen-resources-content" class="hidden" style="margin-top: 12px; border-top: 1px solid var(--pink-soft); padding-top: 12px; display: flex; flex-direction: column; gap: 15px;">
+                <!-- Pantry Tracker -->
+                <div class="pantry-card-wrapper">
+                  <div class="equivalents-card" style="margin-bottom: 0; padding: 10px;">
+                    <div class="equiv-header" style="margin-bottom:6px;">
+                      <h3 style="font-size:0.8rem;">Mi Alacena 🥫</h3>
+                      <span class="badge badge-yellow" id="pantry-items-count">0 ingredientes</span>
+                    </div>
+                    <button id="btn-pantry-voice-mic" class="btn-secondary" style="width: 100%; margin-bottom: 10px; font-size: 0.72rem;">
+                      <i class="fa-solid fa-microphone"></i> Dictar Alacena (Voz IA)
+                    </button>
+                    <div id="pantry-voice-transcription-box" class="voice-transcribe-preview hidden">
+                      <p><strong>Escuchado:</strong> "<span id="pantry-voice-text-result">...</span>"</p>
+                      <div class="chat-typing-indicator" id="pantry-voice-loading" style="padding:0; margin-top:8px;">
+                        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                        <span>Procesando ingredientes con la IA...</span>
+                      </div>
+                    </div>
+                    <div class="pantry-tags-box" id="pantry-tags-container" style="margin-top: 4px; min-height: 30px;">
+                      <!-- Dynamically populated tags -->
+                    </div>
+                    <div class="pantry-add-form" style="margin-bottom: 6px;">
+                      <input type="text" id="pantry-add-input" placeholder="Ej. Claras de huevo, pollo..." class="form-input-small">
+                      <button id="pantry-add-btn" class="btn-primary-small"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                    <div class="pantry-constraints-form" style="padding-top: 6px;">
+                      <div class="form-group-row" style="font-size:0.68rem;">
+                        <span>¿Puedo ir al súper?</span>
+                        <label class="switch">
+                          <input type="checkbox" id="pantry-store-checkbox" checked>
+                          <span class="slider round"></span>
+                        </label>
+                      </div>
+                      <div class="form-group-row" style="margin-top: 6px; font-size:0.68rem;">
+                        <label for="pantry-budget">Presupuesto:</label>
+                        <select id="pantry-budget" class="select-small" style="font-size:0.65rem;">
+                          <option value="Bajo">Bajo 💸</option>
+                          <option value="Medio" selected>Medio 💳</option>
+                          <option value="Alto">Alto 💰</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- SHOPPING LIST -->
+                <div class="equivalents-card" style="border-color: var(--purple-bright); margin-bottom: 0; padding: 10px;">
+                  <div class="equiv-header" style="margin-bottom:6px;">
+                    <h3 style="color: var(--purple-bright); font-size:0.8rem;"><i class="fa-solid fa-cart-shopping"></i> Lista de Compras</h3>
+                    <span class="badge badge-purple" id="shopping-missing-count">Faltan 0</span>
+                  </div>
+                  <div class="shopping-list-box" style="max-height: 110px;">
+                    <ul id="pantry-shopping-list" class="shopping-items-list">
+                      <!-- Dynamically cross-referenced missing items -->
+                    </ul>
+                  </div>
+                </div>
+
+                <!-- SMAE Equivalents Guide -->
+                <div class="equivalents-card" style="margin-bottom: 0; padding: 10px;">
+                  <div class="equiv-header" style="margin-bottom:6px;">
+                    <h3 style="font-size:0.8rem;">Guía de Intercambios 📋</h3>
+                  </div>
+                  <div class="quick-exchanges-matrix" style="grid-template-columns: 1fr 1fr;">
+                    <div class="matrix-col" style="padding:6px;"><strong style="color: var(--green-bright); font-size:0.65rem;">🟢 Verduras</strong><span style="font-size:0.55rem;">1 tz espinaca / 1/2 tz calabacita</span></div>
+                    <div class="matrix-col" style="padding:6px;"><strong style="color: var(--pink-dark); font-size:0.65rem;">🍎 Frutas</strong><span style="font-size:0.55rem;">1 pza manzana / 1 tz papaya</span></div>
+                    <div class="matrix-col" style="padding:6px;"><strong style="color: var(--yellow-kitty-dark); font-size:0.65rem;">🌾 Cereales</strong><span style="font-size:0.55rem;">1 tortilla / 1/2 tz arroz</span></div>
+                    <div class="matrix-col" style="padding:6px;"><strong style="color: var(--pink-deep); font-size:0.65rem;">🍗 Proteínas</strong><span style="font-size:0.55rem;">30g pollo / 1 huevo / 40g panela</span></div>
+                    <div class="matrix-col" style="padding:6px;"><strong style="color: var(--blue-bright); font-size:0.65rem;">🥛 Lácteos</strong><span style="font-size:0.55rem;">1 vaso leche / 3/4 tz yogur</span></div>
+                    <div class="matrix-col" style="padding:6px;"><strong style="color: var(--purple-bright); font-size:0.65rem;">🥑 Grasas</strong><span style="font-size:0.55rem;">1/3 aguacate / 1 cdita aceite</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: EJERCICIO -->
+      <section id="tab-exercise" class="tab-content">
+        <div class="section-header-cute">
+          <h2>Entrenamiento 🏋️‍♀️✨</h2>
+          <p>Protocolo Full-Body y Cardio adaptado a tu servicio social.</p>
+        </div>
+
+        <!-- Flexible Scheduling display -->
+        <div class="equivalents-card" style="margin-bottom: 12px; padding: 12px 16px;">
+          <div class="equiv-header">
+            <h3 style="font-size: 0.95rem;"><i class="fa-solid fa-calendar-days"></i> Calendario Semanal</h3>
+            <span class="badge badge-yellow" id="exercise-today-suggested">Día Sugerido</span>
+          </div>
+          <div class="weekly-schedule-grid">
+            <div class="schedule-day-col" id="sch-Lunes"><span class="sch-day-name">Lun</span><span class="sch-day-act">Día A</span></div>
+            <div class="schedule-day-col" id="sch-Martes"><span class="sch-day-name">Mar</span><span class="sch-day-act text-cardio">Cardio</span></div>
+            <div class="schedule-day-col" id="sch-Miércoles"><span class="sch-day-name">Mié</span><span class="sch-day-act">Día B</span></div>
+            <div class="schedule-day-col" id="sch-Jueves"><span class="sch-day-name">Jue</span><span class="sch-day-act text-rest">Descanso</span></div>
+            <div class="schedule-day-col" id="sch-Viernes"><span class="sch-day-name">Vie</span><span class="sch-day-act">Día C</span></div>
+            <div class="schedule-day-col" id="sch-Sábado"><span class="sch-day-name">Sáb</span><span class="sch-day-act text-cardio">Cardio</span></div>
+            <div class="schedule-day-col" id="sch-Domingo"><span class="sch-day-name">Dom</span><span class="sch-day-act text-rest">Descanso</span></div>
+          </div>
+          
+          <div class="flexible-routine-select-row" style="margin-top: 10px; border-top: 1.5px solid var(--pink-soft); padding-top: 8px;">
+            <label for="flex-routine-choice" style="font-size: 0.72rem; font-weight:700; color:var(--text-secondary);">¿Qué rutina quieres registrar hoy?</label>
+            <select id="flex-routine-choice" class="select-small" style="width: 100%; margin-top: 4px;" onchange="changeActiveRoutineSelection()">
+              <option value="A">Día A (Cadena Anterior y Empujes)</option>
+              <option value="B">Día B (Cadena Posterior y Tracciones)</option>
+              <option value="C">Día C (Activación Mixta y Core)</option>
+              <option value="Cardio">Cardio (Elíptica / Caminadora con Inclinación)</option>
+              <option value="Personalizada">Personalizada 🐾 (Crea tu propia rutina)</option>
+              <option value="none">Descanso (Pausas Activas y Estiramiento)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Routine Selectors -->
+        <div class="routine-selector-tabs">
+          <button class="routine-tab active" data-routine="A">Día A <span>Anterior</span></button>
+          <button class="routine-tab" data-routine="B">Día B <span>Posterior</span></button>
+          <button class="routine-tab" data-routine="C">Día C <span>Mixto/Core</span></button>
+          <button class="routine-tab" data-routine="Cardio">Cardio <span>Resistencia</span></button>
+          <button class="routine-tab" data-routine="Personalizada">Pers. <span>Custom</span></button>
+        </div>
+
+        <!-- Dynamic Routine Body -->
+        <div class="routine-body-card">
+          <div class="routine-description-header">
+            <h3 id="routine-title">Día A: Énfasis en Cadena Anterior y Empujes</h3>
+            <p id="routine-subtitle">Realizar de 2 a 3 sesiones por semana en días no consecutivos.</p>
+          </div>
+
+          <!-- CREATE CUSTOM EXERCISES MANUALLY (NEW PANEL - Visible only on custom routine) -->
+          <div id="custom-exercise-creation-panel" class="equivalents-card hidden" style="border-color: var(--purple-bright); padding: 12px; margin-bottom: 10px;">
+            <h4 style="color: var(--purple-bright); font-size: 0.85rem;"><i class="fa-solid fa-plus-circle"></i> Agregar Ejercicio Manual</h4>
+            <div class="form-group" style="margin-top: 6px;">
+              <label for="custom-ex-name">Nombre del ejercicio</label>
+              <input type="text" id="custom-ex-name" class="form-input-small" placeholder="Ej. Curl de Bíceps con Polea">
+            </div>
+            <div class="form-grid-3" style="margin-top: 6px;">
+              <div class="form-group">
+                <label for="custom-ex-sets">Series</label>
+                <input type="number" id="custom-ex-sets" class="form-input-small" value="3" min="1" max="10">
+              </div>
+              <div class="form-group">
+                <label for="custom-ex-reps">Reps meta</label>
+                <input type="text" id="custom-ex-reps" class="form-input-small" placeholder="12">
+              </div>
+              <div class="form-group">
+                <label for="custom-ex-unit">Unidad</label>
+                <select id="custom-ex-unit" class="select-small" style="width:100%;">
+                  <option value="kg">KG</option>
+                  <option value="lb">LB</option>
+                  <option value="reps">Reps</option>
+                  <option value="seg">Seg</option>
+                </select>
+              </div>
+            </div>
+            <button id="btn-add-custom-exercise" class="btn-primary" style="margin-top: 10px; font-size: 0.75rem; padding: 6px 12px; background-color: var(--purple-bright); width: 100%;">
+              <i class="fa-solid fa-check"></i> Insertar en Rutina Personalizada
+            </button>
+          </div>
+
+          <!-- Exercises container -->
+          <div id="exercises-list-container" class="exercises-list">
+            <!-- Dynamically populated exercises -->
+          </div>
+
+          <!-- Cardio special container -->
+          <div id="cardio-workout-container" class="cardio-container hidden">
+            <div class="cardio-instructions">
+              <h4>Pauta Cardiovascular:</h4>
+              <ul>
+                <li><strong>Frecuencia:</strong> 2 días a la semana durante 30 a 45 minutos.</li>
+                <li><strong>Máquina:</strong> Elíptica o caminadora con inclinación.</li>
+                <li><strong>FC Objetivo:</strong> 60% a 70% de la FC máxima (115 a 135 lpm).</li>
+              </ul>
+            </div>
+            
+            <form id="cardio-log-form" class="cardio-form-card">
+              <h4>Registrar Sesión de Cardio</h4>
+              <div class="form-grid-3">
+                <div class="form-group">
+                  <label for="cardio-time">Minutos</label>
+                  <input type="number" id="cardio-time" min="1" max="180" placeholder="Ej. 30" required>
+                </div>
+                <div class="form-group">
+                  <label for="cardio-distance">Distancia (km)</label>
+                  <input type="number" id="cardio-distance" min="0.1" step="0.01" placeholder="Ej. 3.2" required>
+                </div>
+                <div class="form-group">
+                  <label for="cardio-hr">FC Media (lpm)</label>
+                  <input type="number" id="cardio-hr" min="50" max="220" placeholder="Ej. 125" required>
+                </div>
+              </div>
+              <button type="submit" class="btn-primary"><i class="fa-solid fa-heart-circle-check"></i> Registrar Cardio</button>
+            </form>
+          </div>
+
+          <div class="routine-footer-info">
+            <div class="info-bubble yellow-bubble">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+              <p><strong>Regla de Sobrecarga Progresiva:</strong> Si logras hacer el número máximo de repeticiones en todas las series con técnica impecable, ¡felicidades! Sube del <strong>2% al 5%</strong> la carga la siguiente sesión.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: CHATBOT AGENT -->
+      <section id="tab-chat" class="tab-content">
+        <div class="section-header-cute">
+          <h2>Asistente Inteligente IA 💬🎀</h2>
+          <p>Tu coach virtual. Utiliza tu alacena, calorías del ciclo y limitantes de súper para sugerirte opciones.</p>
+        </div>
+
+        <div class="chat-card-container">
+          <!-- API key warning / input form -->
+          <div id="chat-no-key-warning" class="equivalents-card" style="border-color: var(--pink-bright); padding: 16px; margin-bottom: 12px; text-align:center;">
+            <h3 style="color:var(--pink-deep); font-size:0.95rem; margin-bottom:6px;"><i class="fa-solid fa-key"></i> Activar Asistente IA</h3>
+            <p style="font-size:0.75rem; color:var(--text-secondary); margin-bottom:12px;">Para platicar con tu coach Hello Kitty, pega tu DeepSeek API Key aquí:</p>
+            <div style="display:flex; gap:8px;">
+              <input type="password" id="chat-api-key-input" placeholder="sk-..." class="form-input-small" style="flex:1; padding: 6px; border:2px solid var(--pink-soft); border-radius:10px;">
+              <button id="btn-save-chat-api-key" class="btn-primary-small" style="padding: 6px 12px;"><i class="fa-solid fa-save"></i> Guardar</button>
+            </div>
+          </div>
+
+          <!-- Chat messages box -->
+          <div class="chat-messages-box" id="chat-messages-container">
+            <div class="chat-bubble assistant">
+              <div class="bubble-text">¡Hola, Sonia! 🎀 A ver, dime qué dudas tienes hoy o qué quieres comer con lo que tienes tirado en tu alacena. No tengo todo el día, muévete.</div>
+              <span class="bubble-time">10:00</span>
+            </div>
+          </div>
+
+          <!-- Writing indicator -->
+          <div class="chat-typing-indicator hidden" id="chat-typing">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <span>Kitty está juzgando tus opciones...</span>
+          </div>
+
+          <!-- Input bar -->
+          <form id="chat-input-form" class="chat-input-row">
+            <input type="text" id="chat-text-input" placeholder="Pregunta algo (ej: ¿Qué ceno hoy?)..." required autocomplete="off">
+            <button type="submit" class="btn-send-chat" id="chat-send-btn"><i class="fa-solid fa-paper-plane"></i></button>
+          </form>
+        </div>
+      </section>
+
+      <!-- TAB 5: ESTADISTICAS -->
+      <section id="tab-stats" class="tab-content">
+        <div class="section-header-cute">
+          <h2>Progreso y Estadísticas 📊💖</h2>
+          <p>Visualiza tu consistencia, pérdida de grasa y adaptación cardiovascular en tiempo real.</p>
+        </div>
+
+        <!-- 30-Day Heatmap -->
+        <div class="heatmap-card">
+          <div class="heatmap-header">
+            <h3>Mapa de Hábitos (Últimos 30 días)</h3>
+            <div class="heatmap-legend">
+              <span>Menos</span>
+              <div class="legend-box level-0"></div>
+              <div class="legend-box level-1"></div>
+              <div class="legend-box level-2"></div>
+              <div class="legend-box level-3"></div>
+              <span>Más</span>
+            </div>
+          </div>
+          <p class="heatmap-sub">Consistencia diaria de metas logradas (Dieta, Agua, Entrenamiento)</p>
+          <div class="heatmap-grid" id="heatmap-grid-container">
+            <!-- Dynamically generated days -->
+          </div>
+        </div>
+
+        <!-- Weight Chart Card -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3>Evolución de Peso</h3>
+            <span class="badge badge-purple" id="weight-loss-percentage">-0.0%</span>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="weightChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Heart Rate Chart Card -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3>Registro de Frecuencia Cardíaca</h3>
+            <span class="badge badge-red">Zona Cardio</span>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="hrChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Markdown AI Exporter Panel -->
+        <div class="equivalents-card" style="border-color: var(--purple-bright);">
+          <div class="equiv-header">
+            <h3 style="color: var(--purple-bright)"><i class="fa-solid fa-robot"></i> Exportar para IA</h3>
+          </div>
+          <p class="equiv-desc">Copia un reporte detallado en formato Markdown para pegarlo en ChatGPT o Gemini y recibir análisis clínicos profundos de tu evolución.</p>
+          <button id="btn-export-ai" class="btn-primary" style="background-color: var(--purple-bright); box-shadow: 0 4px 12px rgba(199, 125, 255, 0.3); width: 100%;">
+            <i class="fa-solid fa-copy"></i> Copiar Reporte en Markdown
+          </button>
+        </div>
+
+        <!-- History Table Card -->
+        <div class="history-table-card">
+          <h3>Historial de Registros</h3>
+          <div class="table-scroll">
+            <table class="history-table">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Peso (kg)</th>
+                  <th>Grasa (%)</th>
+                  <th>FC (lpm)</th>
+                  <th>Entreno</th>
+                  <th>Borrar</th>
+                </tr>
+              </thead>
+              <tbody id="history-table-body">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 6: CONFIGURACION -->
+      <section id="tab-profile" class="tab-content">
+        <div class="section-header-cute">
+          <h2>Ajustes PWA 🐾⚙️</h2>
+          <p>Configura sensores, actualiza prescripciones o restaura copias de seguridad.</p>
+        </div>
+
+        <!-- DEVICES & SENSORS SECTION (NEW REQUIRED PANEL) -->
+        <div class="profile-settings-card" style="border-color: var(--pink-bright);">
+          <h3 style="color: var(--pink-deep); border-bottom-color: var(--pink-medium);"><i class="fa-solid fa-mobile-screen-button"></i> Coach y Dispositivo</h3>
+          <p class="equiv-desc" style="margin-bottom: 12px;">Sincronización de hardware móvil de Sonia.</p>
+          
+          <!-- Screen Wake Lock Toggle -->
+          <div class="form-group-row-sensor" style="border-bottom: 1.5px solid var(--pink-soft); padding-bottom: 8px;">
+            <div class="sensor-info-block">
+              <strong>Screen Wake Lock 💡</strong>
+              <p style="font-size:0.75rem; color:var(--text-secondary);">Previene que la pantalla se apague en descansos.</p>
+            </div>
+            <div class="sensor-action-block">
+              <span id="wake-lock-status-badge" class="badge badge-purple" style="font-size: 0.65rem; margin-right: 6px;">Inactivo</span>
+              <label class="switch">
+                <input type="checkbox" id="sensor-wake-lock">
+                <span class="slider round"></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Vibration Haptic Toggle -->
+          <div class="form-group-row-sensor" style="margin-top: 8px; border-bottom: 1.5px solid var(--pink-soft); padding-bottom: 8px;">
+            <div class="sensor-info-block">
+              <strong>Vibración Háptica 📱</strong>
+              <p style="font-size:0.75rem; color:var(--text-secondary);">Vibra el celular al terminar de registrar una serie o el descanso.</p>
+            </div>
+            <div class="sensor-action-block">
+              <span id="vibrate-status-badge" class="badge badge-yellow" style="font-size: 0.65rem; margin-right: 6px;">Soportado ✓</span>
+              <label class="switch">
+                <input type="checkbox" id="sensor-vibrate" checked>
+                <span class="slider round"></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Markdown Full Copy Button (NEW) -->
+          <div class="form-group-row-sensor" style="margin-top: 8px; flex-direction: column; align-items: stretch; gap: 6px;">
+            <strong>Prescripción y Historial</strong>
+            <p style="font-size:0.6rem; color:var(--text-secondary);">Copia tu historial clínico completo para compartirlo con tu médico.</p>
+            <button id="btn-export-full-markdown" class="btn-secondary" style="width: 100%; font-size: 0.72rem; padding: 6px;"><i class="fa-solid fa-copy"></i> Copiar Todo el Historial en Markdown</button>
+          </div>
+          
+          <!-- Sync Exercises Templates JSON (NEW) -->
+          <div class="form-group-row-sensor" style="margin-top: 8px; flex-direction: column; align-items: stretch; gap: 6px;">
+            <strong>Actualizar Prescripción de Rutinas 📝</strong>
+            <p style="font-size:0.6rem; color:var(--text-secondary);">Cambia tus rutinas base (ejercicios, series, pesos iniciales) pegando un código de prescripción JSON.</p>
+            <div style="display:flex; gap:6px;">
+              <button id="btn-copy-prescription-base" class="btn-secondary" style="flex:1; font-size:0.65rem; padding:5px;"><i class="fa-solid fa-copy"></i> Copiar Base JSON</button>
+              <button id="btn-apply-prescription-json" class="btn-primary-small" style="flex:1; font-size:0.65rem; padding:5px; background-color: var(--pink-dark);"><i class="fa-solid fa-check"></i> Aplicar Cambios</button>
+            </div>
+            <textarea id="prescription-json-textarea" class="form-input-small" rows="3" style="font-family: monospace; font-size:0.62rem; margin-top:4px;" placeholder="Pega el código JSON modificado aquí..."></textarea>
+          </div>
+        </div>
+
+        <!-- Biometrics Settings -->
+        <form id="profile-form" class="profile-settings-card">
+          <h3>Datos Personales y Biometría</h3>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label for="prof-age">Edad (años)</label>
+              <input type="number" id="prof-age" value="27" min="1" max="120" required>
+            </div>
+            <div class="form-group">
+              <label for="prof-height">Estatura (cm)</label>
+              <input type="number" id="prof-height" value="176" min="50" max="250" required>
+            </div>
+            <div class="form-group">
+              <label for="prof-weight">Peso Inicial (kg)</label>
+              <input type="number" id="prof-weight" value="80.0" min="20" max="300" step="0.1" required>
+            </div>
+            <div class="form-group">
+              <label for="prof-weight-target">Meta de Peso (kg)</label>
+              <input type="number" id="prof-weight-target" value="68.1" min="20" max="300" step="0.1" required>
+            </div>
+          </div>
+
+          <h3 style="margin-top: 1.5rem;">Objetivos Base Diarios</h3>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label for="prof-calories">Calorías Base (kcal)</label>
+              <input type="number" id="prof-calories" value="1706" min="1000" max="5000" required>
+            </div>
+            <div class="form-group">
+              <label for="prof-p-ratio">Proteínas (g)</label>
+              <input type="number" id="prof-p-ratio" value="113" min="10" max="300" required>
+            </div>
+            <div class="form-group">
+              <label for="prof-c-ratio">Carbohidratos (g)</label>
+              <input type="number" id="prof-c-ratio" value="214" min="10" max="600" required>
+            </div>
+            <div class="form-group">
+              <label for="prof-f-ratio">Grasas (g)</label>
+              <input type="number" id="prof-f-ratio" value="62" min="5" max="200" required>
+            </div>
+          </div>
+          <button type="button" class="btn-secondary" onclick="window.autoAdjustMealPortionsToTarget()" style="margin-top: 8px; width: 100%; font-size:0.78rem;"><i class="fa-solid fa-scale-balanced"></i> Ajustar raciones del menú a mis metas calóricas</button>
+
+          <h3 style="margin-top: 1.5rem;">Clave API para Chatbot</h3>
+          <div class="form-group">
+            <label for="prof-api-key">DeepSeek API Key</label>
+            <input type="password" id="prof-api-key" placeholder="sk-..." value="">
+            <span class="input-helper-text">Se guarda localmente en tu navegador. Sirve para hablar con la IA en la pestaña Chat.</span>
+          </div>
+
+          <button type="submit" class="btn-primary" style="margin-top: 1.5rem; width: 100%"><i class="fa-solid fa-floppy-disk"></i> Guardar Cambios</button>
+        </form>
+
+        <!-- Edit Diets & Workouts -->
+        <div class="profile-settings-card">
+          <h3>Editar Dietas y Recetas 📝🍎</h3>
+          <p class="equiv-desc" style="margin-bottom: 12px;">Modifica los menús asignados a cada día de la semana.</p>
+          
+          <div class="form-group">
+            <label for="edit-diet-day">Selecciona el día:</label>
+            <select id="edit-diet-day" class="select-small" onchange="loadDietEditorDay()">
+              <option value="Lunes">Lunes</option>
+              <option value="Martes">Martes</option>
+              <option value="Miércoles">Miércoles</option>
+              <option value="Jueves">Jueves</option>
+              <option value="Viernes">Viernes</option>
+              <option value="Sábado">Sábado</option>
+              <option value="Domingo">Domingo</option>
+            </select>
+          </div>
+
+          <!-- Diet Editor Container -->
+          <div id="diet-editor-box" class="editor-accordion-list" style="margin-top: 12px;">
+            <!-- Dynamically populated meals inputs -->
+          </div>
+          
+          <button id="save-diet-edits-btn" class="btn-primary-small" style="width: 100%; margin-top: 12px;">
+            <i class="fa-solid fa-save"></i> Guardar Recetas Modificadas
+          </button>
+        </div>
+
+        <div class="profile-settings-card">
+          <h3>Editar Ejercicios y Carga 📝🏋️‍♀️</h3>
+          <p class="equiv-desc" style="margin-bottom: 12px;">Modifica las repeticiones y cargas objetivo de tus rutinas.</p>
+          
+          <div class="form-group">
+            <label for="edit-routine-day">Selecciona rutina:</label>
+            <select id="edit-routine-day" class="select-small" onchange="loadWorkoutEditorRoutine()">
+              <option value="A">Día A: Cadena Anterior</option>
+              <option value="B">Día B: Cadena Posterior</option>
+              <option value="C">Día C: Activación Mixta</option>
+            </select>
+          </div>
+
+          <!-- Workout Editor Container -->
+          <div id="workout-editor-box" class="editor-accordion-list" style="margin-top: 12px;">
+            <!-- Dynamically populated exercise inputs -->
+          </div>
+          
+          <button id="save-workout-edits-btn" class="btn-primary-small" style="width: 100%; margin-top: 12px;">
+            <i class="fa-solid fa-save"></i> Guardar Cargas Modificadas
+          </button>
+        </div>
+
+        <!-- Data Import/Export and Reset Card -->
+        <div class="danger-zone-card">
+          <h3>Zona Kawaii de Datos Backup 备份</h3>
+          <p>Exporta tu progreso para respaldarlo o reinicia la app a los valores originales de Sonia.</p>
+          <div class="danger-actions">
+            <button id="export-data-btn" class="btn-secondary"><i class="fa-solid fa-download"></i> Exportar Historial (JSON)</button>
+            <button id="import-data-btn" class="btn-secondary"><i class="fa-solid fa-upload"></i> Importar Historial (JSON)</button>
+            <button id="reset-app-btn" class="btn-danger"><i class="fa-solid fa-trash-can"></i> Restablecer Datos de Sonia</button>
+          </div>
+          <input type="file" id="import-file" style="display: none;" accept=".json">
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Navigation Footer -->
+    <nav class="app-nav">
+      <button class="nav-item active" data-tab="dashboard">
+        <i class="fa-solid fa-house"></i>
+        <span>Inicio</span>
+      </button>
+      <button class="nav-item" data-tab="diet">
+        <i class="fa-solid fa-apple-whole"></i>
+        <span>Dieta</span>
+      </button>
+      <button class="nav-item" data-tab="exercise">
+        <i class="fa-solid fa-dumbbell"></i>
+        <span>Entreno</span>
+      </button>
+      <button class="nav-item" data-tab="chat">
+        <i class="fa-solid fa-comments"></i>
+        <span>Chat</span>
+      </button>
+      <button class="nav-item" data-tab="stats">
+        <i class="fa-solid fa-chart-line"></i>
+        <span>Progreso</span>
+      </button>
+      <button class="nav-item" data-tab="profile">
+        <i class="fa-solid fa-gear"></i>
+        <span>Ajustes</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- MODAL: REGISTRAR BIOMETRIA -->
+  <div id="log-modal" class="modal-overlay">
+    <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
+      <div class="modal-header">
+        <h3>Registrar Bitácora Bitácora</h3>
+        <button id="close-modal-btn" class="btn-icon"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="biometrics-log-form" class="modal-body">
+        <div class="form-group">
+          <label for="log-date">Fecha</label>
+          <input type="date" id="log-date" required>
+        </div>
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label for="log-weight">Peso (kg)</label>
+            <input type="number" id="log-weight" step="0.1" min="30" max="250" placeholder="80.0" required>
+          </div>
+          <div class="form-group">
+            <label for="log-fat-pct">Grasa (%)</label>
+            <input type="number" id="log-fat-pct" step="0.1" min="5" max="70" placeholder="31.8" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="log-hr">Frecuencia Cardíaca (lpm)</label>
+          <input type="number" id="log-hr" min="40" max="220" placeholder="72" required>
+        </div>
+        <div class="form-group">
+          <label for="log-workout-done">¿Entrenaste hoy?</label>
+          <select id="log-workout-done">
+            <option value="none">Ninguno</option>
+            <option value="A">Día A (Anterior)</option>
+            <option value="B">Día B (Posterior)</option>
+            <option value="C">Día C (Mixto)</option>
+            <option value="Cardio">Cardio</option>
+            <option value="Personalizada">Personalizada</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="log-feeling">¿Cómo te sentiste? (Saciedad, Ansiedad, Energía)</label>
+          <input type="text" id="log-feeling" placeholder="Ej. Con energía, sin ansiedad, satisfecha">
+        </div>
+        <div class="form-group">
+          <label for="log-notes">Notas / Obstáculos del día</label>
+          <input type="text" id="log-notes" placeholder="Ej. Guardia nocturna pesada">
+        </div>
+
+        <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;"><i class="fa-solid fa-heart-circle-check"></i> Registrar en Bitácora</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- CUSTOM PORTION EXCESS COMPENSATOR MODAL -->
+  <div id="cute-excess-modal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 360px;">
+      <div class="modal-header">
+        <h3 style="font-size: 1rem; color: var(--pink-deep);"><i class="fa-solid fa-triangle-exclamation"></i> ¡Control de Excesos! 🍕</h3>
+        <button id="close-excess-modal-btn" class="btn-icon-small"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body" style="padding: 14px 18px; text-align: center;">
+        <div style="font-size: 2.5rem; margin-bottom: 8px;">🐽🎀</div>
+        <p id="excess-modal-message" style="font-size: 0.8rem; line-height: 1.45; font-weight: 600; color: var(--text-primary);">A ver, te pasaste de raciones...</p>
+        <div class="alert-actions-row" style="margin-top: 1.2rem; display: flex; flex-direction: column; gap: 8px; width: 100%;">
+          <button id="excess-compensate-btn" class="btn-primary" style="font-size: 0.8rem; padding: 10px;"><i class="fa-solid fa-wand-magic-sparkles"></i> Compensar en Siguientes Comidas</button>
+          <button id="excess-ignore-btn" class="btn-secondary" style="font-size: 0.8rem; padding: 8px;">Dejar igual (soy rebelde)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PORTION EQUIVALENTS POPUP MODAL (NEW REQUIRED DIALOG) -->
+  <div id="portion-equivalents-modal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 360px; max-height: 85vh; overflow-y: auto;">
+      <div class="modal-header">
+        <h3 id="portion-equiv-title" style="font-size: 1rem; color: var(--pink-deep);">Equivalentes sugeridos</h3>
+        <button id="close-portion-equiv-btn" class="btn-icon-small" onclick="closePortionEquivModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body" style="padding: 14px 18px;">
+        <div id="portion-equiv-desc-box" class="info-bubble yellow-bubble" style="font-size:0.75rem; margin-bottom: 12px; line-height: 1.35;">
+          Una ración de este grupo alimentario equivale a:
+        </div>
+        <ul id="portion-equiv-list" class="shopping-items-list" style="margin-left: 12px; font-size:0.75rem; line-height: 1.5; color: var(--text-primary);">
+          <!-- Populated from exchanges DB -->
+        </ul>
+        
+        <div class="alert-actions-row" style="margin-top: 1.2rem; display: flex; flex-direction: column; gap: 6px;">
+          <!-- Quick add comido shortcut -->
+          <button id="btn-quick-add-portion-comido" class="btn-primary-small" style="padding: 8px; width: 100%;"><i class="fa-solid fa-plus-circle"></i> Registrar Ración consumida hoy</button>
+          <button id="btn-equiv-ask-ai" class="btn-primary-small" style="background-color: var(--purple-bright); padding: 8px; width: 100%;"><i class="fa-solid fa-robot"></i> Consultar Alternativas con IA</button>
+          <button id="btn-equiv-google" class="btn-secondary" style="padding: 8px; width: 100%;"><i class="fa-solid fa-magnifying-glass"></i> Buscar en Google</button>
+          <button class="btn-secondary" style="padding: 6px; width: 100%; font-size: 0.72rem;" onclick="closePortionEquivModal()">Entendido</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- IMAGE LIGHTBOX MODAL FOR GYM MACHINES -->
+  <div id="lightbox-modal" class="modal-overlay" onclick="closeLightboxModal()">
+    <div class="lightbox-container" onclick="event.stopPropagation()">
+      <button class="lightbox-close-btn" onclick="closeLightboxModal()">&times;</button>
+      <img id="lightbox-img" src="" alt="Instrucciones de la máquina">
+      <div class="lightbox-caption" id="lightbox-caption-text">Instrucciones</div>
+    </div>
+  </div>
+
+  <!-- CUSTOM ALERT / CONFIRM SYSTEM MODAL -->
+  <div id="cute-alert-modal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 320px;">
+      <div class="modal-header" style="border-bottom: none; padding-bottom: 0;">
+        <h3 id="cute-alert-title" style="font-size: 1.1rem;">¡Atención, gordis! 🎀</h3>
+        <button id="close-cute-alert-btn" class="btn-icon-small"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body" style="padding: 16px 20px 20px 20px; text-align: center;">
+        <div id="cute-alert-icon" style="font-size: 2.2rem; margin-bottom: 8px;">制造</div>
+        <p id="cute-alert-message" style="font-size: 0.82rem; line-height: 1.4; font-weight: 500; color: var(--text-primary);"></p>
+        <div class="alert-actions-row" style="margin-top: 1.2rem; display: flex; gap: 8px; justify-content: center;">
+          <button id="cute-alert-confirm-btn" class="btn-primary-small" style="padding: 6px 16px;">Aceptar</button>
+          <button id="cute-alert-cancel-btn" class="btn-secondary" style="padding: 5px 12px; display: none;">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROGRESSIVE OVERLOAD POPUP -->
+  <div id="alert-overload" class="toast-alert hidden">
+    <div class="toast-icon">🎀</div>
+    <div class="toast-content">
+      <h4 id="toast-title">¡Sobrecarga Progresiva! 💪</h4>
+      <p id="toast-message">¡Excelente trabajo Sonia! Has completado el máximo rango de reps. Te recomendamos subir la carga entre un 2% y 5% la próxima sesión.</p>
+    </div>
+    <button id="close-toast-btn" class="btn-icon-small"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+
+  <!-- App Scripts -->
+  <script src="js/state.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/voice.js"></script>
+  <script src="js/diet.js"></script>
+  <script src="js/workout.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="app.js"></script>
+
+</body>
+</html>
