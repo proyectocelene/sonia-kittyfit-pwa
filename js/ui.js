@@ -248,7 +248,7 @@ window.renderStats = function() {
   const today = new Date();
   const daysList = [];
   
-  for (let i = 29; i >= 0; i--) {
+  for (let i = 364; i >= 0; i--) {
     const d = new Date(today);
     d.setDate(today.getDate() - i);
     
@@ -437,10 +437,10 @@ window.switchTab = function(tabId) {
     document.getElementById("prof-p-ratio").value = window.appState.profile.targetProteinBase;
     document.getElementById("prof-c-ratio").value = window.appState.profile.targetCarbsBase;
     document.getElementById("prof-f-ratio").value = window.appState.profile.targetFatBase;
+    document.getElementById("prof-weight-unit").value = window.appState.profile.weightUnit || "kg";
     document.getElementById("prof-api-key").value = window.appState.profile.deepseekApiKey;
     
     window.loadDietEditorDay();
-    window.loadWorkoutEditorRoutine();
   }
 };
 
@@ -465,6 +465,12 @@ document.addEventListener("click", (e) => {
     window.renderExercise();
   }
 });
+
+window.changeActiveRoutineSelection = function() {
+  const choice = document.getElementById("flex-routine-choice").value;
+  window.activeRoutineTab = choice;
+  window.renderExercise();
+};
 
 document.getElementById("add-water-btn").addEventListener("click", () => {
   const todayStr = window.getTodayDateString();
@@ -585,6 +591,43 @@ document.getElementById("biometrics-log-form").addEventListener("submit", (e) =>
   window.showCuteAlert("¡Bitácora Guardada! 📝🎀", `Pesas ${weight.toFixed(1)} kg | Grasa: ${fatPct.toFixed(1)}% | FC: ${hr} lpm.`, "🌸");
 });
 
+window.handleExSelectChange = function(selectId, inputId) {
+  const sel = document.getElementById(selectId);
+  const input = document.getElementById(inputId);
+  if (sel.value === "otro") {
+    input.classList.remove("hidden");
+    input.value = "";
+    input.focus();
+  } else {
+    input.classList.add("hidden");
+    input.value = sel.value;
+  }
+};
+
+window.populateExerciseSelects = function() {
+  const selects = ["add-ex-select", "qa-ex-select"];
+  
+  let optionsHTML = '<option value="" disabled selected>-- Selecciona un ejercicio --</option>';
+  for (const [cat, exercises] of Object.entries(window.exerciseDatabase)) {
+    optionsHTML += `<optgroup label="${cat}">`;
+    exercises.forEach(ex => {
+      optionsHTML += `<option value="${ex}">${ex}</option>`;
+    });
+    optionsHTML += `</optgroup>`;
+  }
+  optionsHTML += `<option value="otro">Otro / Personalizado...</option>`;
+  
+  selects.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = optionsHTML;
+  });
+};
+
+// Initial DOM bindings and setup
+document.addEventListener("DOMContentLoaded", () => {
+  window.populateExerciseSelects();
+});
+
 // Profile Settings
 document.getElementById("profile-form").addEventListener("submit", (e) => {
   e.preventDefault();
@@ -612,6 +655,7 @@ document.getElementById("profile-form").addEventListener("submit", (e) => {
   window.appState.profile.targetProteinBase = parseInt(document.getElementById("prof-p-ratio").value);
   window.appState.profile.targetCarbsBase = parseInt(document.getElementById("prof-c-ratio").value);
   window.appState.profile.targetFatBase = parseInt(document.getElementById("prof-f-ratio").value);
+  window.appState.profile.weightUnit = document.getElementById("prof-weight-unit").value;
   
   window.appState.profile.deepseekApiKey = document.getElementById("prof-api-key").value.trim();
   
@@ -628,31 +672,7 @@ document.getElementById("profile-form").addEventListener("submit", (e) => {
   window.saveState();
 });
 
-// Cardio logs
-document.getElementById("cardio-log-form").addEventListener("submit", (e) => {
-  e.preventDefault();
-  
-  const time = parseInt(document.getElementById("cardio-time").value) || 0;
-  const distance = parseFloat(document.getElementById("cardio-distance").value) || 0;
-  const hr = parseInt(document.getElementById("cardio-hr").value) || 0;
-  
-  const todayStr = window.getTodayDateString();
-  const todayLog = window.appState.history.find(h => h.date === todayStr);
-  
-  todayLog.workoutDone = "Cardio";
-  todayLog.hr = hr;
-  todayLog.notes = `Cardio: ${time} mins, ${distance} km`;
-  
-  window.saveState();
-  window.updateCompliance(todayStr);
-  window.renderDashboard();
-  window.renderStats();
-  window.saveState();
-  
-  document.getElementById("cardio-log-form").reset();
-  window.showCuteAlert("¡Cardio Registrado! 🏃‍♀️✨", `Hiciste ${time} minutos de elíptica/caminadora. FC media: ${hr} lpm.`, "😻");
-  window.switchTab("dashboard");
-});
+
 
 // Backup Data Actions
 document.getElementById("export-data-btn").addEventListener("click", () => {
@@ -811,63 +831,6 @@ document.getElementById("save-diet-edits-btn").addEventListener("click", () => {
   window.showCuteAlert("¡Guardado!", `Se actualizaron las recetas del día ${day}.`, "🍏");
   if (window.activeTab === "diet") {
     window.renderDiet();
-  }
-});
-
-window.loadWorkoutEditorRoutine = function() {
-  const routineKey = document.getElementById("edit-routine-day").value;
-  const container = document.getElementById("workout-editor-box");
-  container.innerHTML = "";
-  
-  const routine = window.appState.workoutPlan[routineKey];
-  routine.exercises.forEach((ex, index) => {
-    const activeWeight = window.appState.currentWeights[ex.id] !== undefined ? window.appState.currentWeights[ex.id] : ex.defaultWeight;
-    const activeUnit = window.appState.currentUnits[ex.id] || "kg";
-    
-    const card = document.createElement("div");
-    card.className = "editor-meal-card";
-    card.innerHTML = `
-      <div class="editor-meal-header">
-        <input type="text" id="edit-ex-name-${ex.id}" value="${ex.name}" class="form-input-edit-title" placeholder="Nombre del ejercicio">
-      </div>
-      <div class="editor-meal-body">
-        <div class="form-grid-3">
-          <div class="form-group-edit">
-            <label style="font-size: 0.65rem; font-weight: 700; color: var(--text-secondary);">Series 🏋️‍♀️</label>
-            <input type="number" id="edit-ex-sets-${ex.id}" value="${ex.targetSets}" class="form-input-edit-number">
-          </div>
-          <div class="form-group-edit">
-            <label style="font-size: 0.65rem; font-weight: 700; color: var(--text-secondary);">Rango Reps 🔄</label>
-            <input type="text" id="edit-ex-reps-${ex.id}" value="${ex.repsRange}" class="form-input-edit-text">
-          </div>
-          <div class="form-group-edit">
-            <label style="font-size: 0.65rem; font-weight: 700; color: var(--text-secondary);">Carga (${activeUnit.toUpperCase()}) ⚖️</label>
-            <input type="number" step="0.5" id="edit-ex-weight-${ex.id}" value="${activeWeight}" class="form-input-edit-number">
-          </div>
-        </div>
-      </div>
-    `;
-    container.appendChild(card);
-  });
-};
-
-document.getElementById("save-workout-edits-btn").addEventListener("click", () => {
-  const routineKey = document.getElementById("edit-routine-day").value;
-  const routine = window.appState.workoutPlan[routineKey];
-  
-  routine.exercises.forEach(ex => {
-    ex.name = document.getElementById(`edit-ex-name-${ex.id}`).value;
-    ex.targetSets = parseInt(document.getElementById(`edit-ex-sets-${ex.id}`).value) || 3;
-    ex.repsRange = document.getElementById(`edit-ex-reps-${ex.id}`).value;
-    
-    const newWeight = parseFloat(document.getElementById(`edit-ex-weight-${ex.id}`).value) || 0;
-    window.appState.currentWeights[ex.id] = newWeight;
-  });
-  
-  window.saveState();
-  window.showCuteAlert("¡Guardado!", `Se actualizaron los ejercicios del Día ${routineKey}.`, "💪");
-  if (window.activeTab === "exercise") {
-    window.renderExercise();
   }
 });
 

@@ -6,10 +6,11 @@
   <title>Sonia KittyFit 🎀</title>
   <meta name="description" content="PWA de Nutrición y Entrenamiento de Sonia. Temática de Hello Kitty y Sanrio.">
   <meta name="theme-color" content="#ffccd5">
-  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Sonia KittyFit">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -229,16 +230,19 @@
         </div>
 
         <!-- Quick Log Weight / HR Modal Trigger -->
-        <div class="quick-actions-bar">
-          <button class="btn-floating" id="open-log-modal-btn"><i class="fa-solid fa-plus"></i> Registrar Datos</button>
+        <div class="quick-actions-bar" style="margin-top: 16px; margin-bottom: 24px;">
+          <button class="btn-primary" id="open-log-modal-btn" style="width: 100%; padding: 14px; font-size: 0.95rem; box-shadow: 0 4px 15px rgba(255, 77, 109, 0.4);"><i class="fa-solid fa-pen-to-square"></i> Registrar Peso y Entreno de Hoy</button>
         </div>
       </section>
 
       <!-- TAB 2: DIETA (Rediseñada) -->
       <section id="tab-diet" class="tab-content">
-        <div class="section-header-cute">
-          <h2>Plan Nutricional 🥗🎀</h2>
-          <p id="diet-cycling-desc">Hoy es Día Bajo. Meta: 1506 kcal para control de grasa.</p>
+        <div class="section-header-cute" style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <div>
+            <h2>Plan Nutricional 🥗🎀</h2>
+            <p id="diet-cycling-desc">Hoy es Día Bajo. Meta: 1506 kcal para control de grasa.</p>
+          </div>
+          <button class="btn-secondary" style="font-size: 0.8rem; padding: 8px 12px;" onclick="document.getElementById('cheat-meals-modal').classList.add('open')"><i class="fa-solid fa-burger"></i> Ver Antojos Comunes</button>
         </div>
 
         <!-- Week Day Selector Navigation -->
@@ -265,6 +269,7 @@
         <div class="equivalents-card" style="padding: 12px; border-color: var(--pink-bright);">
           <div class="equiv-header" style="margin-bottom: 8px;">
             <h3 style="font-size:0.85rem;">Raciones Restantes Hoy 🎯</h3>
+            <p class="equiv-desc" style="margin-top: 4px; margin-bottom: 6px; font-size: 0.65rem;">Puedes sumar (+) o restar (-) raciones manualmente si comiste algo fuera de tu plan, o marcarlas abajo como "Consumidas".</p>
             <span class="badge badge-yellow">Progreso Diario</span>
           </div>
           <div class="diet-portions-summary" id="diet-portions-summary-container">
@@ -394,126 +399,37 @@
       <section id="tab-exercise" class="tab-content">
         <div class="section-header-cute">
           <h2>Entrenamiento 🏋️‍♀️✨</h2>
-          <p>Protocolo Full-Body y Cardio adaptado a tu servicio social.</p>
+          <p>Tus rutinas personalizadas y registros de hipertrofia.</p>
         </div>
 
-        <!-- Flexible Scheduling display -->
-        <div class="equivalents-card" style="margin-bottom: 12px; padding: 12px 16px;">
-          <div class="equiv-header">
-            <h3 style="font-size: 0.95rem;"><i class="fa-solid fa-calendar-days"></i> Calendario Semanal</h3>
-            <span class="badge badge-yellow" id="exercise-today-suggested">Día Sugerido</span>
+        <!-- LISTA DE RUTINAS -->
+        <div id="routines-list-view">
+          <button class="btn-primary" style="width:100%; margin-bottom:16px; padding: 14px; font-size: 1rem; box-shadow: var(--shadow-md);" onclick="window.openRoutineEditor()"><i class="fa-solid fa-plus"></i> Crear Nueva Rutina</button>
+          
+          <div id="routines-container" style="display:flex; flex-direction:column; gap:12px;">
+            <!-- Renderizado dinámico desde workout.js -->
           </div>
-          <div class="weekly-schedule-grid">
-            <div class="schedule-day-col" id="sch-Lunes"><span class="sch-day-name">Lun</span><span class="sch-day-act">Día A</span></div>
-            <div class="schedule-day-col" id="sch-Martes"><span class="sch-day-name">Mar</span><span class="sch-day-act text-cardio">Cardio</span></div>
-            <div class="schedule-day-col" id="sch-Miércoles"><span class="sch-day-name">Mié</span><span class="sch-day-act">Día B</span></div>
-            <div class="schedule-day-col" id="sch-Jueves"><span class="sch-day-name">Jue</span><span class="sch-day-act text-rest">Descanso</span></div>
-            <div class="schedule-day-col" id="sch-Viernes"><span class="sch-day-name">Vie</span><span class="sch-day-act">Día C</span></div>
-            <div class="schedule-day-col" id="sch-Sábado"><span class="sch-day-name">Sáb</span><span class="sch-day-act text-cardio">Cardio</span></div>
-            <div class="schedule-day-col" id="sch-Domingo"><span class="sch-day-name">Dom</span><span class="sch-day-act text-rest">Descanso</span></div>
+        </div>
+
+        <!-- TRACKER ACTIVO -->
+        <div id="active-workout-view" class="hidden">
+          <div class="equiv-header" style="justify-content: space-between; margin-bottom: 16px; border-bottom: 2px solid var(--pink-soft); padding-bottom: 8px;">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <h3 id="active-workout-title" style="color:var(--pink-deep); font-size: 1.2rem; margin:0;">Rutina</h3>
+              <span id="active-workout-timer" style="background-color: var(--pink-deep); color: white; font-family: 'Courier New', monospace; font-weight: bold; font-size: 1.1rem; padding: 4px 10px; border-radius: 20px; box-shadow: 0 2px 6px rgba(255,77,109,0.4); border: 2px solid var(--pink-light);">00:00:00</span>
+            </div>
+            <button class="btn-secondary" style="padding: 6px 12px; font-size: 0.8rem;" onclick="window.cancelActiveWorkout()"><i class="fa-solid fa-xmark"></i> Cancelar</button>
+          </div>
+          <div id="active-workout-exercises">
+            <!-- Renderizado dinámico del tracker -->
           </div>
           
-          <div class="flexible-routine-select-row" style="margin-top: 10px; border-top: 1.5px solid var(--pink-soft); padding-top: 8px;">
-            <label for="flex-routine-choice" style="font-size: 0.72rem; font-weight:700; color:var(--text-secondary);">¿Qué rutina quieres registrar hoy?</label>
-            <select id="flex-routine-choice" class="select-small" style="width: 100%; margin-top: 4px;" onchange="changeActiveRoutineSelection()">
-              <option value="A">Día A (Cadena Anterior y Empujes)</option>
-              <option value="B">Día B (Cadena Posterior y Tracciones)</option>
-              <option value="C">Día C (Activación Mixta y Core)</option>
-              <option value="Cardio">Cardio (Elíptica / Caminadora con Inclinación)</option>
-              <option value="Personalizada">Personalizada 🐾 (Crea tu propia rutina)</option>
-              <option value="none">Descanso (Pausas Activas y Estiramiento)</option>
-            </select>
+          <div style="margin-top: 16px;">
+            <button class="btn-primary" style="width: 100%; padding: 12px; font-size: 0.95rem; background: var(--purple-bright); border: none;" onclick="window.openQuickAddExercise()"><i class="fa-solid fa-plus-circle"></i> Añadir Ejercicio Sorpresa</button>
           </div>
-        </div>
-
-        <!-- Routine Selectors -->
-        <div class="routine-selector-tabs">
-          <button class="routine-tab active" data-routine="A">Día A <span>Anterior</span></button>
-          <button class="routine-tab" data-routine="B">Día B <span>Posterior</span></button>
-          <button class="routine-tab" data-routine="C">Día C <span>Mixto/Core</span></button>
-          <button class="routine-tab" data-routine="Cardio">Cardio <span>Resistencia</span></button>
-          <button class="routine-tab" data-routine="Personalizada">Pers. <span>Custom</span></button>
-        </div>
-
-        <!-- Dynamic Routine Body -->
-        <div class="routine-body-card">
-          <div class="routine-description-header">
-            <h3 id="routine-title">Día A: Énfasis en Cadena Anterior y Empujes</h3>
-            <p id="routine-subtitle">Realizar de 2 a 3 sesiones por semana en días no consecutivos.</p>
-          </div>
-
-          <!-- CREATE CUSTOM EXERCISES MANUALLY (NEW PANEL - Visible only on custom routine) -->
-          <div id="custom-exercise-creation-panel" class="equivalents-card hidden" style="border-color: var(--purple-bright); padding: 12px; margin-bottom: 10px;">
-            <h4 style="color: var(--purple-bright); font-size: 0.85rem;"><i class="fa-solid fa-plus-circle"></i> Agregar Ejercicio Manual</h4>
-            <div class="form-group" style="margin-top: 6px;">
-              <label for="custom-ex-name">Nombre del ejercicio</label>
-              <input type="text" id="custom-ex-name" class="form-input-small" placeholder="Ej. Curl de Bíceps con Polea">
-            </div>
-            <div class="form-grid-3" style="margin-top: 6px;">
-              <div class="form-group">
-                <label for="custom-ex-sets">Series</label>
-                <input type="number" id="custom-ex-sets" class="form-input-small" value="3" min="1" max="10">
-              </div>
-              <div class="form-group">
-                <label for="custom-ex-reps">Reps meta</label>
-                <input type="text" id="custom-ex-reps" class="form-input-small" placeholder="12">
-              </div>
-              <div class="form-group">
-                <label for="custom-ex-unit">Unidad</label>
-                <select id="custom-ex-unit" class="select-small" style="width:100%;">
-                  <option value="kg">KG</option>
-                  <option value="lb">LB</option>
-                  <option value="reps">Reps</option>
-                  <option value="seg">Seg</option>
-                </select>
-              </div>
-            </div>
-            <button id="btn-add-custom-exercise" class="btn-primary" style="margin-top: 10px; font-size: 0.75rem; padding: 6px 12px; background-color: var(--purple-bright); width: 100%;">
-              <i class="fa-solid fa-check"></i> Insertar en Rutina Personalizada
-            </button>
-          </div>
-
-          <!-- Exercises container -->
-          <div id="exercises-list-container" class="exercises-list">
-            <!-- Dynamically populated exercises -->
-          </div>
-
-          <!-- Cardio special container -->
-          <div id="cardio-workout-container" class="cardio-container hidden">
-            <div class="cardio-instructions">
-              <h4>Pauta Cardiovascular:</h4>
-              <ul>
-                <li><strong>Frecuencia:</strong> 2 días a la semana durante 30 a 45 minutos.</li>
-                <li><strong>Máquina:</strong> Elíptica o caminadora con inclinación.</li>
-                <li><strong>FC Objetivo:</strong> 60% a 70% de la FC máxima (115 a 135 lpm).</li>
-              </ul>
-            </div>
-            
-            <form id="cardio-log-form" class="cardio-form-card">
-              <h4>Registrar Sesión de Cardio</h4>
-              <div class="form-grid-3">
-                <div class="form-group">
-                  <label for="cardio-time">Minutos</label>
-                  <input type="number" id="cardio-time" min="1" max="180" placeholder="Ej. 30" required>
-                </div>
-                <div class="form-group">
-                  <label for="cardio-distance">Distancia (km)</label>
-                  <input type="number" id="cardio-distance" min="0.1" step="0.01" placeholder="Ej. 3.2" required>
-                </div>
-                <div class="form-group">
-                  <label for="cardio-hr">FC Media (lpm)</label>
-                  <input type="number" id="cardio-hr" min="50" max="220" placeholder="Ej. 125" required>
-                </div>
-              </div>
-              <button type="submit" class="btn-primary"><i class="fa-solid fa-heart-circle-check"></i> Registrar Cardio</button>
-            </form>
-          </div>
-
-          <div class="routine-footer-info">
-            <div class="info-bubble yellow-bubble">
-              <i class="fa-solid fa-triangle-exclamation"></i>
-              <p><strong>Regla de Sobrecarga Progresiva:</strong> Si logras hacer el número máximo de repeticiones en todas las series con técnica impecable, ¡felicidades! Sube del <strong>2% al 5%</strong> la carga la siguiente sesión.</p>
-            </div>
+          
+          <div style="margin-top: 24px; padding-bottom: 40px;">
+            <button class="btn-primary" style="width: 100%; padding: 16px; font-size: 1.1rem; box-shadow: var(--shadow-md);" onclick="window.finishActiveWorkout()"><i class="fa-solid fa-trophy"></i> Finalizar Entrenamiento</button>
           </div>
         </div>
       </section>
@@ -570,7 +486,7 @@
         <!-- 30-Day Heatmap -->
         <div class="heatmap-card">
           <div class="heatmap-header">
-            <h3>Mapa de Hábitos (Últimos 30 días)</h3>
+            <h3>Mapa de Hábitos (Último Año)</h3>
             <div class="heatmap-legend">
               <span>Menos</span>
               <div class="legend-box level-0"></div>
@@ -723,6 +639,13 @@
               <label for="prof-weight-target">Meta de Peso (kg)</label>
               <input type="number" id="prof-weight-target" value="68.1" min="20" max="300" step="0.1" required>
             </div>
+            <div class="form-group" style="grid-column: span 2;">
+              <label for="prof-weight-unit">Unidad de Peso en Gym</label>
+              <select id="prof-weight-unit" class="select-small">
+                <option value="kg">Kilos (kg)</option>
+                <option value="lbs">Libras (lbs)</option>
+              </select>
+            </div>
           </div>
 
           <h3 style="margin-top: 1.5rem;">Objetivos Base Diarios</h3>
@@ -784,28 +707,7 @@
           </button>
         </div>
 
-        <div class="profile-settings-card">
-          <h3>Editar Ejercicios y Carga 📝🏋️‍♀️</h3>
-          <p class="equiv-desc" style="margin-bottom: 12px;">Modifica las repeticiones y cargas objetivo de tus rutinas.</p>
-          
-          <div class="form-group">
-            <label for="edit-routine-day">Selecciona rutina:</label>
-            <select id="edit-routine-day" class="select-small" onchange="loadWorkoutEditorRoutine()">
-              <option value="A">Día A: Cadena Anterior</option>
-              <option value="B">Día B: Cadena Posterior</option>
-              <option value="C">Día C: Activación Mixta</option>
-            </select>
-          </div>
 
-          <!-- Workout Editor Container -->
-          <div id="workout-editor-box" class="editor-accordion-list" style="margin-top: 12px;">
-            <!-- Dynamically populated exercise inputs -->
-          </div>
-          
-          <button id="save-workout-edits-btn" class="btn-primary-small" style="width: 100%; margin-top: 12px;">
-            <i class="fa-solid fa-save"></i> Guardar Cargas Modificadas
-          </button>
-        </div>
 
         <!-- Data Import/Export and Reset Card -->
         <div class="danger-zone-card">
@@ -856,9 +758,10 @@
   <div id="log-modal" class="modal-overlay">
     <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
       <div class="modal-header">
-        <h3>Registrar Bitácora Bitácora</h3>
+        <h3>📝 Bitácora Diaria</h3>
         <button id="close-modal-btn" class="btn-icon"><i class="fa-solid fa-xmark"></i></button>
       </div>
+      <p style="font-size: 0.75rem; color: var(--text-secondary); text-align: center; margin-bottom: 12px; padding: 0 10px;">Aquí registras tu peso de hoy y si completaste tu entrenamiento general.</p>
       <form id="biometrics-log-form" class="modal-body">
         <div class="form-group">
           <label for="log-date">Fecha</label>
@@ -875,21 +778,10 @@
           </div>
         </div>
         <div class="form-group">
-          <label for="log-hr">Frecuencia Cardíaca (lpm)</label>
+          <label for="log-hr">Frecuencia Cardíaca (lpm) al despertar</label>
           <input type="number" id="log-hr" min="40" max="220" placeholder="72" required>
         </div>
-        <div class="form-group">
-          <label for="log-workout-done">¿Entrenaste hoy?</label>
-          <select id="log-workout-done">
-            <option value="none">Ninguno</option>
-            <option value="A">Día A (Anterior)</option>
-            <option value="B">Día B (Posterior)</option>
-            <option value="C">Día C (Mixto)</option>
-            <option value="Cardio">Cardio</option>
-            <option value="Personalizada">Personalizada</option>
-          </select>
-        </div>
-        
+        <!-- Workout selection removed, handled in Training tab -->
         <div class="form-group">
           <label for="log-feeling">¿Cómo te sentiste? (Saciedad, Ansiedad, Energía)</label>
           <input type="text" id="log-feeling" placeholder="Ej. Con energía, sin ansiedad, satisfecha">
@@ -950,10 +842,16 @@
 
   <!-- IMAGE LIGHTBOX MODAL FOR GYM MACHINES -->
   <div id="lightbox-modal" class="modal-overlay" onclick="closeLightboxModal()">
-    <div class="lightbox-container" onclick="event.stopPropagation()">
+    <div class="lightbox-container" onclick="event.stopPropagation()" style="position:relative; background: var(--bg-card); padding: 10px; border-radius: 12px; max-width: 90vw;">
       <button class="lightbox-close-btn" onclick="closeLightboxModal()">&times;</button>
-      <img id="lightbox-img" src="" alt="Instrucciones de la máquina">
-      <div class="lightbox-caption" id="lightbox-caption-text">Instrucciones</div>
+      <img id="lightbox-img" src="" alt="Foto de la máquina" style="width:100%; border-radius: 8px;">
+      <div id="lightbox-actions" style="display:flex; gap:10px; margin-top:12px; justify-content:space-between;">
+        <label class="btn-primary-small" style="cursor:pointer; flex:1; text-align:center; padding: 10px;">
+          <i class="fa-solid fa-camera"></i> Cambiar
+          <input type="file" id="lightbox-upload-input" accept="image/*" style="display:none;" onchange="window.handleLightboxUpload(event)">
+        </label>
+        <button class="btn-secondary" style="flex:1; padding: 10px; color: #ff4d4d; border-color: #ff4d4d;" onclick="window.deleteLightboxPhoto()"><i class="fa-solid fa-trash"></i> Eliminar</button>
+      </div>
     </div>
   </div>
 
@@ -985,7 +883,146 @@
     <button id="close-toast-btn" class="btn-icon-small"><i class="fa-solid fa-xmark"></i></button>
   </div>
 
+  <!-- Cheat Meals Modal -->
+  <div id="cheat-meals-modal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3>Antojos y Comida Rápida 🍔</h3>
+        <button class="close-modal-btn" onclick="document.getElementById('cheat-meals-modal').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body" style="font-size: 0.9rem; line-height: 1.5; max-height: 60vh; overflow-y: auto;">
+        <p style="margin-bottom: 12px; color: var(--text-secondary);">Si comes fuera, usa estas equivalencias para no perder tu balance calórico del día:</p>
+        
+        <ul style="list-style: none; padding: 0;">
+          <li style="margin-bottom: 12px; border-bottom: 1px solid var(--pink-soft); padding-bottom: 8px;">
+            <strong>🍗 Pollo Asado (1 pza grande)</strong><br>
+            <span style="font-size: 0.8rem;">3 Proteína, 1 Grasas Saludables</span>
+          </li>
+          <li style="margin-bottom: 12px; border-bottom: 1px solid var(--pink-soft); padding-bottom: 8px;">
+            <strong>🌮 Tacos de Carne Asada (3 piezas)</strong><br>
+            <span style="font-size: 0.8rem;">3 Carbohidratos, 3 Proteína, 1.5 Grasas Saludables</span>
+          </li>
+          <li style="margin-bottom: 12px; border-bottom: 1px solid var(--pink-soft); padding-bottom: 8px;">
+            <strong>🌮 Tacos de Birria (3 piezas)</strong><br>
+            <span style="font-size: 0.8rem;">3 Carbohidratos, 3 Proteína, 2 Grasas Saludables</span>
+          </li>
+          <li style="margin-bottom: 12px; border-bottom: 1px solid var(--pink-soft); padding-bottom: 8px;">
+            <strong>🍕 Pizza de Queso/Pepperoni (1 rebanada)</strong><br>
+            <span style="font-size: 0.8rem;">2 Carbohidratos, 1.5 Proteína, 2 Grasas Saludables</span>
+          </li>
+          <li style="margin-bottom: 12px; border-bottom: 1px solid var(--pink-soft); padding-bottom: 8px;">
+            <strong>🍔 Hamburguesa con Queso (1 sencilla)</strong><br>
+            <span style="font-size: 0.8rem;">3 Carbohidratos, 2.5 Proteína, 2.5 Grasas Saludables</span>
+          </li>
+          <li style="margin-bottom: 12px; border-bottom: 1px solid var(--pink-soft); padding-bottom: 8px;">
+            <strong>🌮 Tacos al Pastor (3 piezas)</strong><br>
+            <span style="font-size: 0.8rem;">3 Carbohidratos, 2 Proteína, 2 Grasas Saludables, 0.5 Frutas</span>
+          </li>
+          <li style="margin-bottom: 12px; border-bottom: 1px solid var(--pink-soft); padding-bottom: 8px;">
+            <strong>🥪 Sándwich de Jamón y Panela</strong><br>
+            <span style="font-size: 0.8rem;">2 Carbohidratos, 2 Proteína, 1 Grasas Saludables</span>
+          </li>
+          <li style="margin-bottom: 12px;">
+            <strong>🍳 Chilaquiles con Huevo/Pollo (1 plato)</strong><br>
+            <span style="font-size: 0.8rem;">3 Carbohidratos, 2 Proteína, 2 Grasas Saludables, 1 Verduras</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Routine Editor Modal -->
+  <div id="routine-editor-modal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 500px; max-height: 90vh; overflow-y: auto;">
+      <div class="modal-header">
+        <h3 id="editor-modal-title">Crear Rutina</h3>
+        <button class="close-modal-btn" onclick="document.getElementById('routine-editor-modal').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body" style="padding: 16px;">
+        <input type="hidden" id="edit-routine-id">
+        <div class="form-group">
+          <label>Nombre de la Rutina</label>
+          <input type="text" id="edit-routine-name" placeholder="Ej. Día de Pierna">
+        </div>
+        
+        <h4 style="margin-top: 16px; border-bottom: 2px solid var(--pink-soft); padding-bottom: 4px;">Ejercicios de la Rutina</h4>
+        <div id="edit-routine-exercises" style="display:flex; flex-direction:column; gap: 8px; margin-top: 12px; min-height: 50px;">
+           <!-- Lista de ejercicios en edicion -->
+        </div>
+        
+        <div class="equivalents-card" style="margin-top: 16px; padding: 12px; border-color: var(--purple-bright);">
+          <h4 style="font-size:0.85rem; color:var(--purple-bright); margin-bottom:8px;"><i class="fa-solid fa-plus-circle"></i> Añadir Ejercicio</h4>
+          
+          <select id="add-ex-select" class="form-input-small" style="margin-bottom:8px;" onchange="window.handleExSelectChange('add-ex-select', 'add-ex-name')">
+            <option value="" disabled selected>-- Selecciona un ejercicio --</option>
+            <!-- Llenado dinámico por JS -->
+          </select>
+          <input type="text" id="add-ex-name" class="form-input-small hidden" placeholder="Escribe tu ejercicio personalizado..." style="margin-bottom:8px;">
+          <div class="form-grid-2">
+            <div>
+              <label style="font-size:0.7rem;">Series Meta</label>
+              <input type="number" id="add-ex-sets" class="form-input-small" value="3" min="1">
+            </div>
+            <div>
+              <label style="font-size:0.7rem;">Reps Meta</label>
+              <input type="number" id="add-ex-reps" class="form-input-small" value="12" min="1">
+            </div>
+          </div>
+          <button class="btn-primary-small" style="width:100%; margin-top:8px; background-color:var(--purple-bright);" onclick="window.addExerciseToEditor()">Añadir a la Lista</button>
+        </div>
+        
+        <button class="btn-primary" style="width:100%; margin-top:24px;" onclick="window.saveRoutineEditor()"><i class="fa-solid fa-save"></i> Guardar Rutina</button>
+      </div>
+    </div>
+  </div>
+
   <!-- App Scripts -->
+  <!-- Quick Add Exercise Modal -->
+  <div id="quick-add-exercise-modal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 400px;">
+      <div class="modal-header">
+        <h3>Añadir Ejercicio 🏋️‍♀️</h3>
+        <button class="close-modal-btn" onclick="document.getElementById('quick-add-exercise-modal').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Ejercicio</label>
+          <select id="qa-ex-select" class="form-input" style="margin-bottom:8px;" onchange="window.handleExSelectChange('qa-ex-select', 'qa-ex-name')">
+            <option value="" disabled selected>-- Selecciona un ejercicio --</option>
+            <!-- Llenado dinámico -->
+          </select>
+          <input type="text" id="qa-ex-name" class="form-input hidden" placeholder="Ej. Sentadilla Libre" required>
+        </div>
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label>Sets</label>
+            <input type="number" id="qa-ex-sets" class="form-input" value="3" min="1">
+          </div>
+          <div class="form-group">
+            <label>Reps Objetivo</label>
+            <input type="number" id="qa-ex-reps" class="form-input" value="12" min="1">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Categoría</label>
+          <select id="qa-ex-cat" class="form-input">
+            <option value="Pierna">Pierna</option>
+            <option value="Glúteo">Glúteo</option>
+            <option value="Pecho/Espalda">Pecho/Espalda</option>
+            <option value="Brazo/Hombro">Brazo/Hombro</option>
+            <option value="Core/Abdomen">Core/Abdomen</option>
+            <option value="Cardio">Cardio</option>
+          </select>
+        </div>
+        <div class="form-group" style="flex-direction:row; justify-content:flex-start; align-items:center;">
+          <input type="checkbox" id="qa-ex-save-routine" style="width:18px; height:18px; accent-color:var(--pink-deep);" checked>
+          <label for="qa-ex-save-routine" style="font-size:0.8rem; margin:0; font-weight:normal;">Guardar en la plantilla de esta rutina permanentemente</label>
+        </div>
+        <button class="btn-primary" style="width:100%; margin-top:12px;" onclick="window.saveQuickAddExercise()"><i class="fa-solid fa-check"></i> Añadir a la Sesión</button>
+      </div>
+    </div>
+  </div>
+
   <script src="js/state.js"></script>
   <script src="js/api.js"></script>
   <script src="js/voice.js"></script>

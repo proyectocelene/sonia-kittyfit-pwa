@@ -97,13 +97,13 @@ window.renderDiet = function() {
         let chipClass = "";
         if (pKey === "verduras") { label = `🟢 ${pVal} Verduras`; chipClass = "chip-ver"; }
         if (pKey === "frutas") { label = `🍎 ${pVal} Frutas`; chipClass = "chip-fru"; }
-        if (pKey === "cereales") { label = `🌾 ${pVal} Cereales s/g`; chipClass = "chip-cer"; }
-        if (pKey === "animal") { label = `🍗 ${pVal} Proteína`; chipClass = "chip-pro"; }
+        if (pKey === "cereales") { label = `🌾 ${pVal} Carbohidratos s/g`; chipClass = "chip-cer"; }
+        if (pKey === "animal") { label = `🍗 ${pVal} Proteína Baja en Grasa`; chipClass = "chip-pro"; }
         if (pKey === "leguminosas") { label = `🫘 ${pVal} Leguminosas`; chipClass = "chip-leg"; }
-        if (pKey === "leche") { label = `🥛 ${pVal} Lácteos desc.`; chipClass = "chip-lac"; }
-        if (pKey === "grasas") { label = `🥑 ${pVal} Grasas s/p`; chipClass = "chip-gra"; }
-        if (pKey === "cerealesGrasa") { label = `🍩 ${pVal} Cereales c/g`; chipClass = "chip-cer"; }
-        if (pKey === "grasasProteina") { label = `🥜 ${pVal} Grasas c/p`; chipClass = "chip-gra"; }
+        if (pKey === "leche") { label = `🥛 ${pVal} Lácteos Descremados`; chipClass = "chip-lac"; }
+        if (pKey === "grasas") { label = `🥑 ${pVal} Grasas Saludables`; chipClass = "chip-gra"; }
+        if (pKey === "cerealesGrasa") { label = `🍩 ${pVal} Carbohidratos c/g`; chipClass = "chip-cer"; }
+        if (pKey === "grasasProteina") { label = `🥜 ${pVal} Grasas c/proteína`; chipClass = "chip-gra"; }
         
         portionTagsHTML += `<span class="portion-chip ${chipClass}">${label}</span>`;
       }
@@ -122,32 +122,28 @@ window.renderDiet = function() {
         <div class="meal-title-group">
           <div class="meal-names">
             <h4>${meal.name} ${altoText}</h4>
-            <span>${meal.kcal} kcal ${isCompleted ? '<span class="meal-portions-consumed-badge">✅ Consumido</span>' : ''}</span>
+            <span>Objetivo: ${meal.kcal} kcal ${isCompleted ? '<span class="meal-portions-consumed-badge">✅ Registrado</span>' : ''}</span>
           </div>
         </div>
         <div class="meal-toggle-icon"><i class="fa-solid fa-chevron-down"></i></div>
       </div>
-      <div class="meal-body-content">
-        <div class="meal-desc-box" style="font-weight:600;">${meal.description}</div>
-        <div class="meal-portion-chips-row">
+      <div class="meal-body-content" style="padding: 10px;">
+        <p style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px;">Raciones Sugeridas:</p>
+        <div class="meal-portion-chips-row" style="margin-bottom: 12px;">
           ${portionTagsHTML}
         </div>
-        <div class="meal-macros-pill-row">
-          <span class="meal-macro-pill pill-kcal">⚡ ${meal.kcal} kcal</span>
-          <span class="meal-macro-pill pill-p">🍗 ${meal.p}g Proteína</span>
-          <span class="meal-macro-pill pill-c">🌾 ${meal.c}g Carbohidratos</span>
-          <span class="meal-macro-pill pill-f">🥑 ${meal.g}g Grasas</span>
-        </div>
         
-        <div class="meal-actions-row">
-          <button class="${consumedBtnClass}" id="consumed-btn-${mealId}" onclick="window.toggleMealComplete('${meal.name}')">
-            <i class="fa-solid fa-check"></i> ${consumedBtnLabel}
+        <textarea id="manual-meal-input-${mealId}" placeholder="¿Qué comiste en el ${meal.name.toLowerCase()}? Ej. 5 rebanadas de pizza..." style="width: 100%; min-height: 60px; padding: 10px; border-radius: 8px; border: 1px solid var(--pink-soft); margin-bottom: 12px; font-family: var(--font-body); resize: vertical;"></textarea>
+
+        <div class="meal-actions-row" style="flex-wrap: wrap; gap: 8px;">
+          <button class="btn-primary" style="flex: 1;" onclick="window.logMealWithAI('${meal.name}', '${mealId}')" title="Analizar y Registrar con IA">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Registrar con IA
           </button>
-          <button class="btn-meal-voice" onclick="window.voiceModifyMeal('${meal.name}')" title="Modificar con Voz">
-            <i class="fa-solid fa-microphone"></i> Modificar con Voz
+          <button class="btn-secondary" style="flex: 1;" onclick="window.searchGoogleRecipes('${meal.name}')" title="Buscar recetas en Google">
+            <i class="fa-brands fa-google"></i> Buscar Receta
           </button>
-          <button class="btn-secondary" style="padding: 8px; font-size:0.65rem;" onclick="window.askAIChoice('${meal.name}')" title="Consultar Alternativas IA">
-            <i class="fa-solid fa-robot"></i>
+          <button class="${consumedBtnClass}" id="consumed-btn-${mealId}" onclick="window.toggleMealComplete('${meal.name}')" title="Marcar perfecto (sin cambios)">
+            <i class="fa-solid fa-check"></i> Perfecto
           </button>
         </div>
       </div>
@@ -574,4 +570,169 @@ window.autoAdjustMealPortionsToTarget = function() {
   }
 };
 
+window.searchGoogleRecipes = function(mealName) {
+  const mealKey = mealName.replace(/\s+/g, '');
+  const pTargets = window.appState.mealPortions[mealKey] || {};
+  
+  const mapNames = {
+    verduras: "Verduras",
+    frutas: "Frutas",
+    cereales: "Carbohidratos sin grasa",
+    animal: "Proteína Baja en Grasa",
+    leguminosas: "Leguminosas",
+    leche: "Lácteos Descremados",
+    grasas: "Grasas Saludables",
+    cerealesGrasa: "Carbohidratos con grasa",
+    grasasProteina: "Grasas con proteína"
+  };
+
+  let queryParts = [`receta sana para ${mealName} con`];
+  Object.keys(pTargets).forEach(key => {
+    if (pTargets[key] > 0) {
+      queryParts.push(`${pTargets[key]} raciones de ${mapNames[key] || key}`);
+    }
+  });
+  const url = `https://www.google.com/search?q=${encodeURIComponent(queryParts.join(', '))}`;
+  window.open(url, '_blank');
+};
+
+window.logMealWithAI = async function(mealName, mealId) {
+  const apiKey = window.appState.profile.deepseekApiKey;
+  if (!apiKey) {
+    window.showCuteAlert("Sin API Key", "Necesitas configurar tu API Key de DeepSeek en los Ajustes para usar la Inteligencia Artificial.", "😿");
+    return;
+  }
+  
+  const textArea = document.getElementById(`manual-meal-input-${mealId}`);
+  const text = textArea ? textArea.value.trim() : "";
+  if (!text) {
+    window.showCuteAlert("Texto vacío", "Por favor, escribe qué comiste antes de presionar el botón.", "📝");
+    return;
+  }
+  
+  const btn = document.querySelector(`#meal-card-${mealId} .btn-primary`);
+  const originalBtnHTML = btn.innerHTML;
+  btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Analizando...`;
+  btn.disabled = true;
+  
+  const systemPrompt = `
+    Eres un robot nutriólogo clínico experto en el Sistema Mexicano de Alimentos Equivalentes (SMAE).
+    El usuario declara haber comido esto: "${text}".
+    Identifica los grupos de alimentos y calcula las raciones consumidas.
+    Las claves DEBEN ser exactamente: cereales, verduras, frutas, animal, leguminosas, leche, grasas, cerealesGrasa, grasasProteina.
+    Toma en cuenta estas EQUIVALENCIAS DE COMIDAS COMUNES Y ANTOJOS:
+    - Pollo Asado (1 pza grande): 3 animal, 1 grasas
+    - Tacos de Carne Asada (3 pzas): 3 cereales, 3 animal, 1.5 grasas
+    - Tacos de Birria (3 pzas): 3 cereales, 3 animal, 2 grasas
+    - Pizza de Queso/Pepperoni (1 rebanada): 2 cereales, 1.5 animal, 2 grasas
+    - Hamburguesa con Queso (1 pza): 3 cereales, 2.5 animal, 2.5 grasas
+    - Tacos al Pastor (3 pzas): 3 cereales, 2 animal, 2 grasas, 0.5 frutas
+    - Sándwich de Jamón y Panela: 2 cereales, 2 animal, 1 grasas
+    - Chilaquiles con Huevo/Pollo (1 plato): 3 cereales, 2 animal, 2 grasas, 1 verduras
+    Devuelve estrictamente un objeto JSON plano. Sin explicaciones ni código markdown.
+    Ejemplo: {"animal": 2, "cereales": 1.5, "grasas": 1}
+  `;
+  
+  try {
+    const response = await fetch("https://api.deepseek.com/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        model: "deepseek-chat",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: text }
+        ],
+        temperature: 0.1
+      })
+    });
+    
+    const data = await response.json();
+    if (data.choices && data.choices[0]) {
+      const parsed = JSON.parse(data.choices[0].message.content.trim().replace(/```json/g, "").replace(/```/g, ""));
+      const todayStr = window.getTodayDateString();
+      const todayLog = window.appState.history.find(h => h.date === todayStr);
+      
+      const mealKey = mealName.replace(/\s+/g, '');
+      const pTargets = window.appState.mealPortions[mealKey] || {};
+      
+      let excesses = [];
+      let deficits = [];
+      
+      const allKeys = new Set([...Object.keys(parsed), ...Object.keys(pTargets)]);
+      
+      allKeys.forEach(key => {
+        const eaten = parsed[key] || 0;
+        const targetForMeal = pTargets[key] || 0;
+        
+        if (eaten > 0) {
+          if (!todayLog.smaeEaten[key]) todayLog.smaeEaten[key] = 0;
+          todayLog.smaeEaten[key] += eaten;
+        }
+        
+        const difference = eaten - targetForMeal;
+        const targetObj = window.appState.smaeTargets.find(t => t.key === key);
+        const name = targetObj ? targetObj.name : key;
+        
+        if (difference > 0) {
+          excesses.push({ key, name, amount: difference });
+        } else if (difference < 0) {
+          deficits.push({ key, name, amount: Math.abs(difference) });
+        }
+      });
+      
+      if (!todayLog.mealsCompleted.includes(mealName)) {
+        todayLog.mealsCompleted.push(mealName);
+      }
+      
+      window.saveState();
+      window.updateCompliance(todayStr);
+      window.renderDiet();
+      window.renderDashboard();
+      
+      let message = "La IA calculó tus raciones.";
+      let hasPrompt = false;
+
+      if (excesses.length > 0) {
+        hasPrompt = true;
+        const excessText = excesses.map(e => `${e.amount} de ${e.name}`).join(", ");
+        message += `\n\n🚨 **Te excediste** en el ${mealName} por: ${excessText}.\n\n¿Deseas que restemos este excedente de tus próximas comidas automáticamente para que no rompas tu meta de hoy?`;
+        
+        window.showCuteConfirm("¡Cálculo Exitoso pero te pasaste! ⚖️", message, () => {
+          excesses.forEach(e => {
+            if (!todayLog.smaeOffsets[e.key]) todayLog.smaeOffsets[e.key] = 0;
+            todayLog.smaeOffsets[e.key] -= e.amount;
+          });
+          window.saveState();
+          window.renderDiet();
+          window.showCuteAlert("Balance Restaurado ⚖️", "Tus próximas comidas serán más ligeras para compensar tu desliz.", "✨");
+        }, "⚖️");
+      } 
+      else if (deficits.length > 0) {
+        hasPrompt = true;
+        const deficitText = deficits.map(d => `${d.amount} de ${d.name}`).join(", ");
+        message += `\n\n📉 **Comiste menos** de lo planeado en el ${mealName}. Faltaron: ${deficitText}.\n\n¿Deseas sumar estas raciones faltantes a tus próximas comidas de hoy para completar tus calorías?`;
+        
+        window.showCuteConfirm("¡Cálculo Exitoso pero te faltó comer! 🌸", message, () => {
+          deficits.forEach(d => {
+            if (!todayLog.smaeOffsets[d.key]) todayLog.smaeOffsets[d.key] = 0;
+            todayLog.smaeOffsets[d.key] += d.amount;
+          });
+          window.saveState();
+          window.renderDiet();
+          window.showCuteAlert("Raciones Arrastradas 🌸", "Hemos sumado las raciones que te faltaron al resto de tu día.", "✨");
+        }, "🌸");
+      }
+      
+      if (!hasPrompt) {
+        window.showCuteAlert("Registro Perfecto 🎯", "La IA calculó tus porciones y comiste exactamente lo que te tocaba. ¡Excelente!", "🍓");
+      }
+    }
+  } catch (e) {
+    window.showCuteAlert("Error en IA 🎙️", "No se pudo interpretar tu comida. Revisa tu conexión o tu API Key.", "😿");
+  } finally {
+    btn.innerHTML = originalBtnHTML;
+    btn.disabled = false;
+  }
+};
 

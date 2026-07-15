@@ -23,7 +23,8 @@ const defaultSoniaData = {
       "champiñones", "lechuga", "jitomate", "almendras", "frijoles"
     ],
     canGoToStore: true,
-    foodBudget: "Medio"
+    foodBudget: "Medio",
+    weightUnit: "kg"
   },
   
   dietPlan: {
@@ -87,14 +88,14 @@ const defaultSoniaData = {
   },
 
   smaeTargets: [
-    { key: "cereales", name: "Cereales sin grasa", target: 4.5, unit: "ración" },
+    { key: "cereales", name: "Carbohidratos sin grasa", target: 4.5, unit: "ración" },
     { key: "verduras", name: "Verduras", target: 5, unit: "ración" },
     { key: "frutas", name: "Frutas", target: 4, unit: "ración" },
-    { key: "animal", name: "Proteínas Baja en Grasa", target: 9, unit: "ración" },
+    { key: "animal", name: "Proteína Baja en Grasa", target: 9, unit: "ración" },
     { key: "leguminosas", name: "Leguminosas", target: 1.5, unit: "ración" },
-    { key: "leche", name: "Lácteos descremados", target: 1.5, unit: "vaso" },
-    { key: "grasas", name: "Grasas sin proteína", target: 4, unit: "cdita" },
-    { key: "cerealesGrasa", name: "Cereales con grasa", target: 1, unit: "ración" },
+    { key: "leche", name: "Lácteos Descremados", target: 1.5, unit: "vaso" },
+    { key: "grasas", name: "Grasas Saludables", target: 4, unit: "cdita" },
+    { key: "cerealesGrasa", name: "Carbohidratos con grasa", target: 1, unit: "ración" },
     { key: "grasasProteina", name: "Grasas con proteína", target: 1, unit: "ración" }
   ],
 
@@ -149,62 +150,14 @@ const defaultSoniaData = {
     ]
   },
 
-  workoutPlan: {
-    A: {
-      name: "Día A: Cadena Anterior y Empujes",
-      subtitle: "Enfoque en cuádriceps, pecho y empujes verticales.",
-      exercises: [
-        { id: "a1", name: "Sentadilla copa con mancuerna", targetSets: 3, targetReps: 12, repsRange: "10 a 12 repeticiones", weightUnit: "kg", defaultWeight: 12 },
-        { id: "a2", name: "Press de pecho con mancuernas en banco plano", targetSets: 3, targetReps: 12, repsRange: "10 a 12 repeticiones", weightUnit: "kg", defaultWeight: 10 },
-        { id: "a3", name: "Zancadas estáticas", targetSets: 3, targetReps: 12, repsRange: "12 repeticiones por pierna", weightUnit: "kg", defaultWeight: 8 },
-        { id: "a4", name: "Remo con mancuerna a un brazo", targetSets: 3, targetReps: 12, repsRange: "10 a 12 repeticiones", weightUnit: "kg", defaultWeight: 10 },
-        { id: "a5", name: "Plancha abdominal isométrica", targetSets: 3, targetReps: 60, repsRange: "40 a 60 segundos", weightUnit: "seg", defaultWeight: 0 }
-      ]
-    },
-    B: {
-      name: "Día B: Cadena Posterior y Tracciones",
-      subtitle: "Enfoque en femorales, glúteos, espalda y jalón.",
-      exercises: [
-        { id: "b1", name: "Peso muerto rumano con mancuernas o barra", targetSets: 3, targetReps: 12, repsRange: "10 a 12 repeticiones", weightUnit: "kg", defaultWeight: 20 },
-        { id: "b2", name: "Jalón al pecho en polea alta", targetSets: 3, targetReps: 12, repsRange: "10 a 12 repeticiones", weightUnit: "kg", defaultWeight: 25 },
-        { id: "b3", name: "Puente de glúteo con peso", targetSets: 3, targetReps: 15, repsRange: "12 a 15 repeticiones", weightUnit: "kg", defaultWeight: 16 },
-        { id: "b4", name: "Press militar con mancuernas sentado", targetSets: 3, targetReps: 12, repsRange: "10 a 12 repeticiones", weightUnit: "kg", defaultWeight: 8 },
-        { id: "b5", name: "Elevaciones de piernas acostada", targetSets: 3, targetReps: 15, repsRange: "12 a 15 repeticiones", weightUnit: "reps", defaultWeight: 0 }
-      ]
-    },
-    C: {
-      name: "Día C: Activación Mixta y Estabilización",
-      subtitle: "Estimulación combinada de fuerza y core profundo.",
-      exercises: [
-        { id: "c1", name: "Prensa de piernas", targetSets: 3, targetReps: 12, repsRange: "10 a 12 repeticiones", weightUnit: "kg", defaultWeight: 40 },
-        { id: "c2", name: "Flexiones estándar o modificadas (de rodillas)", targetSets: 3, targetReps: 10, repsRange: "Fallo técnico", weightUnit: "reps", defaultWeight: 0 },
-        { id: "c3", name: "Curl femoral en máquina", targetSets: 3, targetReps: 15, repsRange: "12 a 15 repeticiones", weightUnit: "kg", defaultWeight: 15 },
-        { id: "c4", name: "Elevaciones laterales para deltoides", targetSets: 3, targetReps: 15, repsRange: "15 repeticiones", weightUnit: "kg", defaultWeight: 4 },
-        { id: "c5", name: "Dead bug (insecto muerto) para core", targetSets: 3, targetReps: 12, repsRange: "12 repeticiones por lado", weightUnit: "reps", defaultWeight: 0 }
-      ]
-    }
-  },
+  workoutRoutines: [], // Array of user-defined routines: { id, name, exercises: [] }
 
   history: [
-    { date: "2026-07-09", weight: 80.0, fat: 31.8, hr: 74, workoutDone: "none", calories: 1500, water: 2.0, compliance: 1, feeling: "Servicio Social pesado", notes: "Mucho café", smaeOffsets: {} },
-    { date: "2026-07-10", weight: 79.8, fat: 31.6, hr: 72, workoutDone: "A", calories: 1900, water: 2.5, compliance: 3, feeling: "Con energía", notes: "Día alto", smaeOffsets: {} },
-    { date: "2026-07-11", weight: 79.7, fat: 31.5, hr: 122, workoutDone: "Cardio", calories: 1480, water: 2.8, compliance: 2, feeling: "Cansada", notes: "Hice elíptica", smaeOffsets: {} },
-    { date: "2026-07-12", weight: 79.5, fat: 31.4, hr: 73, workoutDone: "none", calories: 1490, water: 2.4, compliance: 2, feeling: "Descanso cómodo", notes: "Día tranquilo", smaeOffsets: {} },
-    { date: "2026-07-13", weight: 79.4, fat: 31.3, hr: 70, workoutDone: "B", calories: 1850, water: 2.6, compliance: 3, feeling: "Motivada", notes: "Subí 1kg en peso muerto", smaeOffsets: {} }
+    { date: "2026-07-09", weight: 80.0, fat: 31.8, hr: 74, workoutDone: "none", calories: 1500, water: 2.0, compliance: 1, feeling: "Servicio Social pesado", notes: "Mucho café", smaeOffsets: {}, workoutLogged: {} }
   ],
   
-  currentWeights: {
-    a1: 12, a2: 10, a3: 8, a4: 10, a5: 0,
-    b1: 20, b2: 25, b3: 16, b4: 8, b5: 0,
-    c1: 40, c2: 0, c3: 15, c4: 4, c5: 0
-  },
-
-  currentUnits: {
-    a1: "kg", a2: "kg", a3: "kg", a4: "kg", a5: "seg",
-    b1: "kg", b2: "kg", b3: "kg", b4: "kg", b5: "reps",
-    c1: "kg", c2: "reps", c3: "kg", c4: "kg", c5: "reps"
-  },
-
+  currentWeights: {}, // Stores last weight used per exercise ID for progressive overload
+  currentUnits: {},
   machineImages: {},
   chatHistory: []
 };
@@ -307,6 +260,42 @@ window.loadAllMachineImages = async function() {
   }
 };
 
+window.exerciseDatabase = {
+  "Pierna": [
+    "Sentadilla Libre", "Sentadilla Smith", "Prensa de Piernas", 
+    "Extensión de Cuádriceps", "Curl de Isquios (Acostado)", 
+    "Curl de Isquios (Sentado)", "Desplantes con Mancuernas",
+    "Desplantes Búlgaros", "Hack Squat"
+  ],
+  "Glúteo": [
+    "Hip Thrust (Barra)", "Puente de Glúteo", "Abducción de Cadera en Máquina",
+    "Patada de Glúteo (Cable)", "Patada de Glúteo (Máquina)", 
+    "Peso Muerto Rumano", "Sentadilla Sumo"
+  ],
+  "Pecho": [
+    "Press de Banca Plano", "Press Inclinado con Mancuernas", 
+    "Aperturas con Mancuernas", "Peck Deck (Máquina)", 
+    "Press de Pecho en Máquina"
+  ],
+  "Espalda": [
+    "Jalón al Pecho", "Remo con Barra", "Remo Sentado (Cable)", 
+    "Remo con Mancuerna", "Dominadas (Asistidas)", "Pull Over (Cable)"
+  ],
+  "Hombro": [
+    "Press Militar (Mancuernas)", "Press de Hombro (Máquina)", 
+    "Elevaciones Laterales", "Elevaciones Frontales", "Face Pull"
+  ],
+  "Brazo": [
+    "Curl de Bíceps (Barra Z)", "Curl con Mancuernas Alterno",
+    "Curl Martillo", "Extensión de Tríceps (Cuerda)",
+    "Press Francés", "Fondos de Tríceps (Máquina)"
+  ],
+  "Core/Cardio": [
+    "Crunch Abdominal", "Plancha", "Elevación de Piernas Colgada",
+    "Caminadora", "Elíptica", "Escaladora"
+  ]
+};
+
 window.initAppState = function() {
   const savedState = localStorage.getItem("sonia_kittyfit_state");
   if (savedState) {
@@ -326,11 +315,7 @@ window.initAppState = function() {
         }
       });
 
-      Object.keys(defaultSoniaData.workoutPlan).forEach(key => {
-        if (window.appState.workoutPlan[key] === undefined) {
-          window.appState.workoutPlan[key] = JSON.parse(JSON.stringify(defaultSoniaData.workoutPlan[key]));
-        }
-      });
+
       
     } catch (e) {
       console.error("Error loading saved state, resetting.", e);

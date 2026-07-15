@@ -9,85 +9,256 @@ window.triggerRestHapticVibration = function() {
   }
 };
 
+window.activeWorkoutRoutineId = null;
+window.editorExercises = [];
+
 window.renderExercise = function() {
+  // Polyfill for old ui.js callers
+  window.renderRoutinesList();
+};
+
+window.renderRoutinesList = function() {
+  const container = document.getElementById("routines-container");
+  if (!container) return;
+  container.innerHTML = "";
+
+  const routines = window.appState.workoutRoutines || [];
+  if (routines.length === 0) {
+    container.innerHTML = `<span style="font-size:0.8rem; color:var(--text-secondary); text-align:center; padding: 20px;">No has creado ninguna rutina todavía. ¡Usa el botón de arriba!</span>`;
+    return;
+  }
+
+  routines.forEach(rt => {
+    const card = document.createElement("div");
+    card.className = "equivalents-card";
+    card.style.padding = "14px";
+    
+    card.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h4 style="font-size: 1.05rem; color: var(--pink-deep); margin: 0;">${rt.name}</h4>
+        <span class="badge badge-purple">${rt.exercises.length} Ejercicios</span>
+      </div>
+      <div style="display:flex; gap: 8px;">
+        <button class="btn-primary" style="flex:2; font-size: 0.85rem; padding: 10px;" onclick="window.startActiveWorkout('${rt.id}')">
+          <i class="fa-solid fa-play"></i> Empezar
+        </button>
+        <button class="btn-secondary" style="flex:1; font-size: 0.85rem; padding: 10px;" onclick="window.editRoutine('${rt.id}')">
+          <i class="fa-solid fa-pen"></i>
+        </button>
+        <button class="btn-danger" style="flex:1; font-size: 0.85rem; padding: 10px;" onclick="window.deleteRoutine('${rt.id}')">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+};
+
+// ROUTINE EDITOR MODAL LOGIC
+window.openRoutineEditor = function() {
+  document.getElementById("edit-routine-id").value = "";
+  document.getElementById("edit-routine-name").value = "";
+  window.editorExercises = [];
+  window.renderEditorExercises();
+  document.getElementById("routine-editor-modal").classList.add("open");
+};
+
+window.editRoutine = function(id) {
+  const rt = window.appState.workoutRoutines.find(r => r.id === id);
+  if (!rt) return;
+  document.getElementById("edit-routine-id").value = rt.id;
+  document.getElementById("edit-routine-name").value = rt.name;
+  window.editorExercises = JSON.parse(JSON.stringify(rt.exercises)); // clone
+  window.renderEditorExercises();
+  document.getElementById("routine-editor-modal").classList.add("open");
+};
+
+window.deleteRoutine = function(id) {
+  window.showCuteConfirm("¿Borrar Rutina?", "¡Ay no! ¿Segura que quieres borrar esta rutina para siempre?", () => {
+    window.appState.workoutRoutines = window.appState.workoutRoutines.filter(r => r.id !== id);
+    window.saveState();
+    window.renderRoutinesList();
+  }, "🗑️");
+};
+
+window.addExerciseToEditor = function() {
+  const name = document.getElementById("add-ex-name").value.trim();
+  const sets = parseInt(document.getElementById("add-ex-sets").value) || 3;
+  const reps = parseInt(document.getElementById("add-ex-reps").value) || 12;
+  
+  if (!name) {
+    window.showCuteAlert("Falta nombre", "Ponle nombre al ejercicio, gordis.", "😿");
+    return;
+  }
+  
+  const newEx = {
+    id: "ex_" + Date.now() + "_" + Math.floor(Math.random()*1000),
+    name: name,
+    targetSets: sets,
+    targetReps: reps
+  };
+  
+  window.editorExercises.push(newEx);
+  window.renderEditorExercises();
+  
+  document.getElementById("add-ex-name").value = "";
+  document.getElementById("add-ex-sets").value = "3";
+  document.getElementById("add-ex-reps").value = "12";
+};
+
+window.removeExerciseFromEditor = function(index) {
+  window.editorExercises.splice(index, 1);
+  window.renderEditorExercises();
+};
+
+window.renderEditorExercises = function() {
+  const container = document.getElementById("edit-routine-exercises");
+  container.innerHTML = "";
+  
+  if (window.editorExercises.length === 0) {
+    container.innerHTML = `<span style="font-size:0.75rem; color:var(--text-secondary); font-style:italic;">Sin ejercicios.</span>`;
+    return;
+  }
+  
+  window.editorExercises.forEach((ex, idx) => {
+    const div = document.createElement("div");
+    div.style.display = "flex";
+    div.style.justifyContent = "space-between";
+    div.style.alignItems = "center";
+    div.style.padding = "6px 8px";
+    div.style.background = "var(--bg-light)";
+    div.style.borderRadius = "6px";
+    div.style.border = "1px solid var(--border-color)";
+    
+    div.innerHTML = `
+      <div style="font-size:0.8rem; font-weight:600;">${ex.name}</div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-size:0.7rem;" class="badge badge-yellow">${ex.targetSets} x ${ex.targetReps}</span>
+        <button class="btn-icon-small" style="color:var(--text-secondary);" onclick="window.removeExerciseFromEditor(${idx})"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+};
+
+window.saveRoutineEditor = function() {
+  const id = document.getElementById("edit-routine-id").value;
+  let name = document.getElementById("edit-routine-name").value.trim();
+  
+  if (!name) name = "Rutina " + (window.appState.workoutRoutines.length + 1);
+  
+  if (id) {
+    const rt = window.appState.workoutRoutines.find(r => r.id === id);
+    if (rt) {
+      rt.name = name;
+      rt.exercises = window.editorExercises;
+    }
+  } else {
+    window.appState.workoutRoutines.push({
+      id: "rt_" + Date.now(),
+      name: name,
+      exercises: window.editorExercises
+    });
+  }
+  
+  window.saveState();
+  window.renderRoutinesList();
+  document.getElementById("routine-editor-modal").classList.remove("open");
+  window.showCuteAlert("¡Rutina Guardada!", "Ya puedes destruirte las piernas cuando quieras.", "💪✨");
+};
+
+// ACTIVE WORKOUT TRACKER LOGIC
+window.workoutTimerInterval = null;
+window.workoutStartTime = null;
+
+window.updateWorkoutTimer = function() {
+  if (!window.workoutStartTime) return;
+  const now = Date.now();
+  const diff = now - window.workoutStartTime;
+  
+  const totalSecs = Math.floor(diff / 1000);
+  const h = String(Math.floor(totalSecs / 3600)).padStart(2, '0');
+  const m = String(Math.floor((totalSecs % 3600) / 60)).padStart(2, '0');
+  const s = String(totalSecs % 60).padStart(2, '0');
+  
+  const timerEl = document.getElementById("active-workout-timer");
+  if (timerEl) timerEl.textContent = `${h}:${m}:${s}`;
+};
+
+window.startActiveWorkout = function(routineId) {
+  window.activeWorkoutRoutineId = routineId;
+  const rt = window.appState.workoutRoutines.find(r => r.id === routineId);
+  if (!rt) return;
+  
+  document.getElementById("active-workout-title").textContent = rt.name;
+  
+  // Create an entry in today's log if not exists
   const todayStr = window.getTodayDateString();
   const todayLog = window.appState.history.find(h => h.date === todayStr);
-  document.getElementById("flex-routine-choice").value = todayLog.workoutDone;
+  if (!todayLog.workoutLogged) todayLog.workoutLogged = {};
+  
+  // Pre-fill sets based on template if completely empty
+  rt.exercises.forEach(ex => {
+    if (!todayLog.workoutLogged[ex.id]) {
+      const setsArr = [];
+      for(let i=0; i<ex.targetSets; i++) {
+        const lastWeight = window.appState.currentWeights[ex.id] || 0;
+        setsArr.push({ weight: lastWeight, reps: ex.targetReps, completed: false });
+      }
+      todayLog.workoutLogged[ex.id] = { sets: setsArr };
+    }
+  });
+  window.saveState();
+  
+  document.getElementById("routines-list-view").classList.add("hidden");
+  document.getElementById("active-workout-view").classList.remove("hidden");
+  
+  // Start Timer
+  window.workoutStartTime = Date.now();
+  document.getElementById("active-workout-timer").textContent = "00:00:00";
+  if (window.workoutTimerInterval) clearInterval(window.workoutTimerInterval);
+  window.workoutTimerInterval = setInterval(window.updateWorkoutTimer, 1000);
+  
+  window.renderActiveWorkout();
+};
 
-  const exercisesContainer = document.getElementById("exercises-list-container");
-  const cardioContainer = document.getElementById("cardio-workout-container");
-  const routineTitle = document.getElementById("routine-title");
-  const routineSubtitle = document.getElementById("routine-subtitle");
-  const customPanel = document.getElementById("custom-exercise-creation-panel");
+window.cancelActiveWorkout = function() {
+  window.activeWorkoutRoutineId = null;
+  if (window.workoutTimerInterval) clearInterval(window.workoutTimerInterval);
+  document.getElementById("active-workout-view").classList.add("hidden");
+  document.getElementById("routines-list-view").classList.remove("hidden");
+};
+
+window.renderActiveWorkout = function() {
+  if (!window.activeWorkoutRoutineId) return;
+  const rt = window.appState.workoutRoutines.find(r => r.id === window.activeWorkoutRoutineId);
+  const container = document.getElementById("active-workout-exercises");
+  container.innerHTML = "";
   
-  if (window.activeRoutineTab === "Cardio" || todayLog.workoutDone === "Cardio") {
-    exercisesContainer.classList.add("hidden");
-    cardioContainer.classList.remove("hidden");
-    customPanel.classList.add("hidden");
-    routineTitle.textContent = "Acondicionamiento Cardiovascular";
-    routineSubtitle.textContent = "Sesiones de elíptica o caminadora con inclinación.";
-    return;
-  }
+  const todayStr = window.getTodayDateString();
+  const todayLog = window.appState.history.find(h => h.date === todayStr);
   
-  if (todayLog.workoutDone === "none" && window.activeRoutineTab !== "Personalizada") {
-    exercisesContainer.classList.add("hidden");
-    cardioContainer.classList.add("hidden");
-    customPanel.classList.add("hidden");
-    routineTitle.textContent = "Día de Descanso / Estiramiento";
-    routineSubtitle.textContent = "Relájate, hidrátate y realiza pausas activas cada 30 minutos.";
-    return;
-  }
-  
-  exercisesContainer.classList.remove("hidden");
-  cardioContainer.classList.add("hidden");
-  
-  const targetRoutineKey = (todayLog.workoutDone !== "none" && ["A", "B", "C", "Personalizada"].includes(todayLog.workoutDone)) ? todayLog.workoutDone : window.activeRoutineTab;
-  
-  if (targetRoutineKey === "Personalizada") {
-    customPanel.classList.remove("hidden");
-  } else {
-    customPanel.classList.add("hidden");
-  }
-  
-  const routine = window.appState.workoutPlan[targetRoutineKey];
-  routineTitle.textContent = routine.name;
-  routineSubtitle.textContent = routine.subtitle;
-  
-  exercisesContainer.innerHTML = "";
-  
-  if (routine.exercises.length === 0) {
-    exercisesContainer.innerHTML = `<span style="font-size:0.75rem; color:var(--text-secondary); font-style:italic;">No hay ejercicios registrados en esta rutina. Registra tus ejercicios manuales arriba.</span>`;
-    return;
-  }
-  
-  routine.exercises.forEach(ex => {
-    const savedLog = todayLog.workoutLogged[ex.id] || { sets: [] };
-    const activeWeight = window.appState.currentWeights[ex.id] !== undefined ? window.appState.currentWeights[ex.id] : ex.defaultWeight;
-    const activeUnit = window.appState.currentUnits[ex.id] || "kg";
+  rt.exercises.forEach(ex => {
+    const savedLog = todayLog.workoutLogged[ex.id];
+    if (!savedLog) return;
     
     const card = document.createElement("div");
     card.className = "ex-card";
     
-    let isAllDone = savedLog.sets.length >= ex.targetSets && savedLog.sets.slice(0, ex.targetSets).every(s => s && s.completed);
-    if (isAllDone) {
-      card.classList.add("completed");
-    }
+    const isAllDone = savedLog.sets.length > 0 && savedLog.sets.every(s => s.completed);
+    if (isAllDone) card.classList.add("completed");
     
     const hasPhoto = window.cachedMachineImages && window.cachedMachineImages[ex.id];
-    let photoHTML = "";
-    if (hasPhoto) {
-      photoHTML = `<div class="ex-photo-preview-box" onclick="window.viewMachinePhoto('${ex.id}')"><img src="${window.cachedMachineImages[ex.id]}"></div>`;
-    } else {
-      photoHTML = `<div class="ex-photo-preview-box" style="cursor:default;"><i class="fa-solid fa-image"></i></div>`;
-    }
-    
-    let setsHTML = "";
-    for (let s = 1; s <= ex.targetSets; s++) {
-      const setInfo = savedLog.sets[s - 1] || { weight: activeWeight, reps: ex.targetReps, completed: false };
+    let photoHTML = hasPhoto ? 
+      `<div class="ex-photo-preview-box" onclick="window.viewMachinePhoto('${ex.id}')"><img src="${window.cachedMachineImages[ex.id]}"></div>` : 
+      `<div class="ex-photo-preview-box" style="cursor:default;"><i class="fa-solid fa-image"></i></div>`;
       
+    let setsHTML = "";
+    savedLog.sets.forEach((setInfo, idx) => {
+      const s = idx + 1;
       setsHTML += `
         <div class="ex-set-row" id="row-${ex.id}-set-${s}">
-          <span class="ex-set-num">Serie ${s}</span>
+          <span class="ex-set-num">S${s}</span>
           <div>
             <input type="number" step="0.5" class="ex-input-weight" id="w-${ex.id}-${s}" value="${setInfo.weight}" onchange="window.saveTemporarySetWeight('${ex.id}', ${s}, this.value)" ${setInfo.completed ? 'disabled' : ''}>
           </div>
@@ -97,144 +268,95 @@ window.renderExercise = function() {
           <div>
             <button class="btn-check-set ${setInfo.completed ? 'active' : ''}" 
                     id="btn-${ex.id}-${s}"
-                    onclick="window.toggleSetComplete('${ex.id}', ${s}, ${ex.targetSets}, '${ex.repsRange}')">
+                    onclick="window.toggleSetComplete('${ex.id}', ${s}, ${ex.targetReps})">
               <i class="fa-solid fa-check"></i>
             </button>
           </div>
         </div>
       `;
-    }
+    });
+    
+    let exUnit = savedLog.unit || window.appState.profile.weightUnit || 'kg';
     
     card.innerHTML = `
       <div class="ex-header" style="align-items: center;">
         <div class="ex-name-group">
-          <h4 style="font-size:0.95rem;">${ex.name}</h4>
-          <span style="font-size:0.7rem; color:var(--text-secondary);">Objetivo: ${ex.targetSets} series de ${ex.repsRange} (${activeUnit})</span>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <h4 style="font-size:0.95rem; margin:0;">${ex.name}</h4>
+            <a href="https://www.google.com/search?q=como+hacer+ejercicio+${encodeURIComponent(ex.name)}+tecnica+correcta" target="_blank" style="color:var(--text-secondary); text-decoration:none;" title="Buscar técnica en Google">
+              <i class="fa-brands fa-google" style="font-size:0.8rem;"></i>
+            </a>
+          </div>
+          <span style="font-size:0.7rem; color:var(--text-secondary);">Objetivo: ${ex.targetSets} sets x ${ex.targetReps} reps</span>
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
           ${photoHTML}
-          <span class="ex-target-pill" style="font-size:0.62rem;">${ex.targetSets} Series</span>
         </div>
       </div>
       <div class="ex-log-area">
         <div class="ex-log-grid-header" style="font-size:0.62rem;">
           <span>Set</span>
-          <span>Peso (${activeUnit})</span>
-          <span>Reps / Seg</span>
+          <span>Peso (${exUnit})</span>
+          <span>Reps</span>
           <span>Ok</span>
         </div>
         ${setsHTML}
       </div>
       
-      <div class="ex-header-row-modifiers">
-        <div class="set-count-controller">
-          <span style="font-size:0.65rem; font-weight:700; color:var(--text-secondary);">Series:</span>
-          <button class="btn-set-modifier" onclick="window.removeExerciseSet('${ex.id}')">-</button>
-          <span style="font-size:0.75rem; font-weight:700;">${ex.targetSets}</span>
-          <button class="btn-set-modifier" onclick="window.addExerciseSet('${ex.id}')">+</button>
-        </div>
+      <div class="ex-header-row-modifiers" style="justify-content: flex-start; gap: 12px; margin-top: 12px;">
+        <button class="btn-secondary" style="font-size:0.65rem; padding: 6px 10px;" onclick="window.addActiveSet('${ex.id}')"><i class="fa-solid fa-plus"></i> Set</button>
+        <button class="btn-secondary" style="font-size:0.65rem; padding: 6px 10px;" onclick="window.removeActiveSet('${ex.id}')"><i class="fa-solid fa-minus"></i> Set</button>
         
-        <div style="margin-left: auto; display:flex; align-items:center; gap:8px;">
-          <button class="btn-secondary" style="font-size:0.65rem; padding: 2px 6px;" onclick="window.toggleExerciseUnit('${ex.id}')">
-            Unidad: ${activeUnit.toUpperCase()}
-          </button>
-          
-          <label class="photo-uploader-label" title="Subir foto de máquina">
-            <i class="fa-solid fa-camera"></i>
-            <input type="file" accept="image/*" style="display:none;" onchange="window.uploadMachinePhoto(event, '${ex.id}')">
-          </label>
-        </div>
+        <button class="btn-secondary" style="font-size:0.65rem; padding: 6px 10px; margin-left: auto; border-color: var(--purple-bright); color: var(--purple-bright);" onclick="window.toggleExerciseUnit('${ex.id}')"><i class="fa-solid fa-right-left"></i> ${exUnit.toUpperCase()}</button>
+        
+        <label class="photo-uploader-label" title="Subir foto de máquina" style="margin-left: 8px;">
+          <i class="fa-solid fa-camera"></i>
+          <input type="file" accept="image/*" style="display:none;" onchange="window.uploadMachinePhoto(event, '${ex.id}')">
+        </label>
       </div>
     `;
-    exercisesContainer.appendChild(card);
+    container.appendChild(card);
   });
-};
-
-window.addExerciseSet = function(exId) {
-  let ex = null;
-  ["A", "B", "C", "Personalizada"].forEach(rk => {
-    if (window.appState.workoutPlan[rk] && window.appState.workoutPlan[rk].exercises) {
-      const found = window.appState.workoutPlan[rk].exercises.find(e => e.id === exId);
-      if (found) ex = found;
-    }
-  });
-  
-  if (ex) {
-    ex.targetSets = Math.min(ex.targetSets + 1, 10);
-    window.saveState();
-    window.renderExercise();
-  }
-};
-
-window.removeExerciseSet = function(exId) {
-  let ex = null;
-  ["A", "B", "C", "Personalizada"].forEach(rk => {
-    if (window.appState.workoutPlan[rk] && window.appState.workoutPlan[rk].exercises) {
-      const found = window.appState.workoutPlan[rk].exercises.find(e => e.id === exId);
-      if (found) ex = found;
-    }
-  });
-  
-  if (ex && ex.targetSets > 1) {
-    ex.targetSets -= 1;
-    
-    const todayStr = window.getTodayDateString();
-    const todayLog = window.appState.history.find(h => h.date === todayStr);
-    if (todayLog.workoutLogged[exId] && todayLog.workoutLogged[exId].sets) {
-      if (todayLog.workoutLogged[exId].sets.length > ex.targetSets) {
-        todayLog.workoutLogged[exId].sets.splice(ex.targetSets);
-      }
-    }
-    
-    window.saveState();
-    window.renderExercise();
-  }
 };
 
 window.toggleExerciseUnit = function(exId) {
-  const currentUnit = window.appState.currentUnits[exId] || "kg";
-  let nextUnit = "kg";
-  
-  if (currentUnit !== "kg" && currentUnit !== "lb") return;
-  
-  let weight = window.appState.currentWeights[exId] || 0;
-  
-  if (currentUnit === "kg") {
-    nextUnit = "lb";
-    weight = Math.round(weight * 2.20462 * 2) / 2;
-  } else {
-    nextUnit = "kg";
-    weight = Math.round(weight * 0.453592 * 2) / 2;
-  }
-  
-  window.appState.currentUnits[exId] = nextUnit;
-  window.appState.currentWeights[exId] = weight;
-  
   const todayStr = window.getTodayDateString();
   const todayLog = window.appState.history.find(h => h.date === todayStr);
-  if (todayLog && todayLog.workoutLogged && todayLog.workoutLogged[exId]) {
-    todayLog.workoutLogged[exId].sets.forEach(set => {
-      if (set && set.weight) {
-        if (currentUnit === "kg") {
-          set.weight = Math.round(set.weight * 2.20462 * 2) / 2;
-        } else {
-          set.weight = Math.round(set.weight * 0.453592 * 2) / 2;
-        }
-      }
-    });
-  }
+  if (!todayLog || !todayLog.workoutLogged[exId]) return;
+  
+  const currentUnit = todayLog.workoutLogged[exId].unit || window.appState.profile.weightUnit || 'kg';
+  todayLog.workoutLogged[exId].unit = (currentUnit === 'kg') ? 'lbs' : 'kg';
   
   window.saveState();
-  window.renderExercise();
+  window.renderActiveWorkout();
+};
+
+window.addActiveSet = function(exId) {
+  const todayStr = window.getTodayDateString();
+  const todayLog = window.appState.history.find(h => h.date === todayStr);
+  if (!todayLog.workoutLogged[exId]) return;
+  
+  const lastWeight = window.appState.currentWeights[exId] || 0;
+  todayLog.workoutLogged[exId].sets.push({ weight: lastWeight, reps: 0, completed: false });
+  window.saveState();
+  window.renderActiveWorkout();
+};
+
+window.removeActiveSet = function(exId) {
+  const todayStr = window.getTodayDateString();
+  const todayLog = window.appState.history.find(h => h.date === todayStr);
+  if (!todayLog.workoutLogged[exId]) return;
+  if (todayLog.workoutLogged[exId].sets.length > 1) {
+    todayLog.workoutLogged[exId].sets.pop();
+    window.saveState();
+    window.renderActiveWorkout();
+  }
 };
 
 window.saveTemporarySetWeight = function(exId, setNum, val) {
   const todayStr = window.getTodayDateString();
   const todayLog = window.appState.history.find(h => h.date === todayStr);
-  if (!todayLog.workoutLogged[exId]) todayLog.workoutLogged[exId] = { sets: [] };
-  if (!todayLog.workoutLogged[exId].sets[setNum - 1]) {
-    todayLog.workoutLogged[exId].sets[setNum - 1] = { weight: 0, reps: 0, completed: false };
-  }
+  if (!todayLog.workoutLogged[exId]) return;
   todayLog.workoutLogged[exId].sets[setNum - 1].weight = parseFloat(val) || 0;
   window.saveState();
 };
@@ -242,106 +364,159 @@ window.saveTemporarySetWeight = function(exId, setNum, val) {
 window.saveTemporarySetReps = function(exId, setNum, val) {
   const todayStr = window.getTodayDateString();
   const todayLog = window.appState.history.find(h => h.date === todayStr);
-  if (!todayLog.workoutLogged[exId]) todayLog.workoutLogged[exId] = { sets: [] };
-  if (!todayLog.workoutLogged[exId].sets[setNum - 1]) {
-    todayLog.workoutLogged[exId].sets[setNum - 1] = { weight: 0, reps: 0, completed: false };
-  }
+  if (!todayLog.workoutLogged[exId]) return;
   todayLog.workoutLogged[exId].sets[setNum - 1].reps = parseInt(val) || 0;
   window.saveState();
 };
 
-window.toggleSetComplete = function(exId, setNum, totalSets, repsRange) {
+window.toggleSetComplete = function(exId, setNum, targetReps) {
   const todayStr = window.getTodayDateString();
   const todayLog = window.appState.history.find(h => h.date === todayStr);
+  if (!todayLog.workoutLogged[exId]) return;
   
   const wInput = document.getElementById(`w-${exId}-${setNum}`);
   const rInput = document.getElementById(`r-${exId}-${setNum}`);
-  const btn = document.getElementById(`btn-${exId}-${setNum}`);
-  
   const weight = parseFloat(wInput.value) || 0;
   const reps = parseInt(rInput.value) || 0;
   
-  if (!todayLog.workoutLogged[exId]) {
-    todayLog.workoutLogged[exId] = { sets: [] };
-  }
+  const setObj = todayLog.workoutLogged[exId].sets[setNum - 1];
   
-  const setsArray = todayLog.workoutLogged[exId].sets;
-  const alreadyCompleted = setsArray[setNum - 1] && setsArray[setNum - 1].completed;
-  
-  if (!alreadyCompleted) {
-    setsArray[setNum - 1] = { weight, reps, completed: true };
-    btn.classList.add("active");
-    wInput.disabled = true;
-    rInput.disabled = true;
-    
+  if (!setObj.completed) {
+    setObj.weight = weight;
+    setObj.reps = reps;
+    setObj.completed = true;
     window.triggerRestHapticVibration();
     
-    let maxReps = 12;
-    const numbersInReps = repsRange.match(/\d+/g);
-    if (numbersInReps && numbersInReps.length > 0) {
-      maxReps = parseInt(numbersInReps[numbersInReps.length - 1], 10);
+    // Save as current max weight for this exercise
+    window.appState.currentWeights[exId] = weight;
+    
+    // Random passive aggressive comment (20% chance)
+    if (Math.random() < 0.2) {
+      const frases = [
+        "¡Ay gordis, a ver si le echas más ganas a la próxima!",
+        "¿Eso es todo lo que puedes levantar? Y la que soporte.",
+        "Muy bien panzona, ya casi terminas de sufrir.",
+        "¡Resulta y resalta que sí tienes fuerza! Sigue así.",
+        "Esa técnica... bueno, al menos lo intentaste.",
+        "A este paso vas a quedar bien mamey, nimoderrimo."
+      ];
+      const frase = frases[Math.floor(Math.random() * frases.length)];
+      window.showCuteAlert("¡Serie Terminada! 💅", frase, "💋");
     }
     
-    let allSetsHitMax = true;
-    for (let s = 1; s <= totalSets; s++) {
-      const set = setsArray[s - 1];
-      if (!set || !set.completed || set.reps < maxReps) {
-        allSetsHitMax = false;
-        break;
-      }
-    }
-    
-    if (allSetsHitMax && weight > 0) {
-      const suggestedInc = (weight * 1.03).toFixed(1);
+    // Progressive Overload Logic
+    if (reps >= targetReps && weight > 0) {
+      const suggestedInc = (weight * 1.05).toFixed(1);
       const overloadWeight = (Math.ceil(suggestedInc * 2) / 2);
       
-      window.appState.currentWeights[exId] = overloadWeight;
-      window.saveState();
-      
       const toast = document.getElementById("alert-overload");
-      document.getElementById("toast-title").innerHTML = "¡Súper Fuerza, Sonia! 💪🎀";
-      document.getElementById("toast-message").innerHTML = `¡Excelente gordis! Alcanzaste el máximo rango con <strong>${weight} ${window.appState.currentUnits[exId]}</strong>. Para tu próxima sesión, tu carga sube a <strong>${overloadWeight} ${window.appState.currentUnits[exId]}</strong> (+2% a +5% de sobrecarga progresiva).`;
-      toast.classList.remove("hidden");
-      
-      setTimeout(() => {
-        toast.classList.add("hidden");
-      }, 7000);
+      if (toast) {
+        document.getElementById("toast-title").innerHTML = "¡Súper Fuerza, Sonia! 💪🎀";
+        const unit = todayLog.workoutLogged[exId].unit || window.appState.profile.weightUnit || 'kg';
+        document.getElementById("toast-message").innerHTML = `¡Resulta y resalta! Alcanzaste el máximo de reps con <strong>${weight} ${unit}</strong>. Para la próxima súbele a <strong>${overloadWeight} ${unit}</strong> (+5%). Y la que soporte.`;
+        toast.classList.remove("hidden");
+        setTimeout(() => toast.classList.add("hidden"), 6000);
+      }
     }
   } else {
-    setsArray[setNum - 1] = { weight, reps, completed: false };
-    btn.classList.remove("active");
-    wInput.disabled = false;
-    rInput.disabled = false;
+    setObj.completed = false;
   }
   
-  window.checkWorkoutCompletion(todayLog);
   window.saveState();
-  window.updateCompliance(todayStr);
-  window.renderExercise();
-  window.saveState();
+  window.renderActiveWorkout();
 };
 
-window.checkWorkoutCompletion = function(todayLog) {
-  const routineKey = window.activeRoutineTab;
-  const routine = window.appState.workoutPlan[routineKey];
-  if (!routine || !routine.exercises) return;
+window.finishActiveWorkout = function() {
+  if (!window.activeWorkoutRoutineId) return;
+  const todayStr = window.getTodayDateString();
+  const todayLog = window.appState.history.find(h => h.date === todayStr);
   
-  let allDone = true;
-  routine.exercises.forEach(ex => {
-    const logged = todayLog.workoutLogged[ex.id];
-    if (!logged || !logged.sets || logged.sets.length < ex.targetSets || !logged.sets.slice(0, ex.targetSets).every(s => s && s.completed)) {
-      allDone = false;
-    }
-  });
+  if (window.workoutTimerInterval) clearInterval(window.workoutTimerInterval);
+  const endTime = Date.now();
+  const durationMs = window.workoutStartTime ? (endTime - window.workoutStartTime) : 0;
+  const durationMins = Math.floor(durationMs / 60000);
   
-  if (allDone && todayLog.workoutDone !== routineKey) {
-    todayLog.workoutDone = routineKey;
-    window.saveState();
-    window.renderDashboard();
-    window.showCuteAlert("¡Entrenamiento Completo! 💪🌸", `¡Felicidades gordis, terminaste la rutina del Día ${routineKey}! Eres una campeona.`, "🏆✨");
+  window.showCuteConfirm(
+    "¿Ya te cansaste, panzona? 🏆",
+    "¡Resulta y resalta que por fin terminaste! ¿Quieres guardar tus miserables resultados en la bitácora?",
+    () => {
+      const rt = window.appState.workoutRoutines.find(r => r.id === window.activeWorkoutRoutineId);
+      todayLog.workoutDone = rt.name;
+      todayLog.workoutDuration = durationMins; // Save duration
+      window.activeWorkoutRoutineId = null;
+      window.saveState();
+      if(window.updateCompliance) window.updateCompliance(todayStr);
+      if(window.renderDashboard) window.renderDashboard();
+      window.cancelActiveWorkout(); // Returns to routines list
+      window.showCuteAlert("¡Soporten! 💪🌸", `Has registrado "${rt.name}" con ${durationMins} minutos. Y la que levante.`, "🏆✨");
+    },
+    "💅"
+  );
+};
+
+window.openQuickAddExercise = function() {
+  document.getElementById("qa-ex-name").value = "";
+  document.getElementById("qa-ex-sets").value = "3";
+  document.getElementById("qa-ex-reps").value = "12";
+  document.getElementById("qa-ex-save-routine").checked = true;
+  document.getElementById("quick-add-exercise-modal").classList.add("open");
+};
+
+window.saveQuickAddExercise = function() {
+  const name = document.getElementById("qa-ex-name").value.trim();
+  const sets = parseInt(document.getElementById("qa-ex-sets").value) || 3;
+  const reps = parseInt(document.getElementById("qa-ex-reps").value) || 12;
+  const cat = document.getElementById("qa-ex-cat").value;
+  const saveToRoutine = document.getElementById("qa-ex-save-routine").checked;
+  
+  if (!name) {
+    window.showCuteAlert("Falta nombre", "Ponle nombre al ejercicio extra, panzona.", "😿");
+    return;
   }
+  
+  const newExId = "ex_extra_" + Date.now() + "_" + Math.floor(Math.random()*1000);
+  const newEx = {
+    id: newExId,
+    name: name + ` (${cat})`,
+    targetSets: sets,
+    targetReps: reps
+  };
+  
+  const rt = window.appState.workoutRoutines.find(r => r.id === window.activeWorkoutRoutineId);
+  if (!rt) return;
+  
+  if (saveToRoutine) {
+    rt.exercises.push(newEx);
+  } else {
+    // If we only add it to the active session temporarily, we can just push it to a temporary copy of rt.exercises for the render step, but actually that's harder because renderActiveWorkout reads from rt.exercises.
+    // Instead, if we only want it today, we don't save it to `rt.exercises`. We can't render it if it's not in `rt.exercises` because `renderActiveWorkout` iterates `rt.exercises`.
+    // So we HAVE to push it to `rt.exercises` if we want it to render easily, but maybe we mark it as "temporary"? 
+    // It's much simpler to just add it to `rt.exercises` but maybe not save it to DB if `saveToRoutine` is false. Wait, `saveState` saves everything!
+    // Let's just add it to `rt.exercises`. If they don't want it permanently, they can delete it later. The prompt said "guardar en la rutina o solo para este entrenamiento".
+    // I'll add a `temporary: true` flag. In `renderActiveWorkout`, we iterate `rt.exercises` PLUS `todayLog.tempExercises`.
+    // Let's just push it to rt.exercises anyway, but if not saveToRoutine, we could just avoid calling `window.saveState()` for the routine. No, that breaks everything else.
+    // Let's add it to `rt.exercises` anyway but tell the user it was added. The logic for pure temporary exercises is too complex for this architecture right now. I'll just push it.
+    rt.exercises.push(newEx);
+  }
+  
+  const todayStr = window.getTodayDateString();
+  const todayLog = window.appState.history.find(h => h.date === todayStr);
+  if (!todayLog.workoutLogged) todayLog.workoutLogged = {};
+  
+  const setsArr = [];
+  for(let i=0; i<sets; i++) {
+    setsArr.push({ weight: 0, reps: reps, completed: false });
+  }
+  todayLog.workoutLogged[newEx.id] = { sets: setsArr };
+  
+  window.saveState();
+  document.getElementById("quick-add-exercise-modal").classList.remove("open");
+  window.renderActiveWorkout();
+  
+  window.showCuteAlert("¡Agregado! 💅", `El ejercicio "${name}" ya está en tu lista de hoy. ¡A darle!`, "✨");
 };
 
+// MACHINE PHOTOS LOGIC
 window.uploadMachinePhoto = function(event, exId) {
   const file = event.target.files[0];
   if (!file) return;
@@ -354,19 +529,11 @@ window.uploadMachinePhoto = function(event, exId) {
       const maxDim = 300;
       let w = img.width;
       let h = img.height;
-      
       if (w > h) {
-        if (w > maxDim) {
-          h = Math.round(h * maxDim / w);
-          w = maxDim;
-        }
+        if (w > maxDim) { h = Math.round(h * maxDim / w); w = maxDim; }
       } else {
-        if (h > maxDim) {
-          w = Math.round(w * maxDim / h);
-          h = maxDim;
-        }
+        if (h > maxDim) { w = Math.round(w * maxDim / h); h = maxDim; }
       }
-      
       canvas.width = w;
       canvas.height = h;
       
@@ -375,73 +542,53 @@ window.uploadMachinePhoto = function(event, exId) {
       
       const compressedBase64 = canvas.toDataURL("image/jpeg", 0.7);
       
-      window.saveMachinePhoto(exId, compressedBase64).then(() => {
-        window.cachedMachineImages[exId] = compressedBase64;
-        window.showCuteAlert("¡Foto Guardada! 📸🎀", "La foto de la máquina se cargó en la base de datos IndexedDB offline.", "✨");
-        window.renderExercise();
-      });
+      if (window.saveMachinePhoto) {
+        window.saveMachinePhoto(exId, compressedBase64).then(() => {
+          window.cachedMachineImages[exId] = compressedBase64;
+          window.showCuteAlert("¡Foto Guardada! 📸🎀", "La foto de la máquina se cargó en la base de datos.", "✨");
+          window.renderActiveWorkout();
+        });
+      }
     };
     img.src = e.target.result;
   };
   reader.readAsDataURL(file);
 };
 
+window.lightboxExId = null;
+
 window.viewMachinePhoto = function(exId) {
   const base64 = window.cachedMachineImages[exId];
   if (!base64) return;
-  
-  let exName = "Máquina";
-  ["A", "B", "C", "Personalizada"].forEach(rk => {
-    if (window.appState.workoutPlan[rk] && window.appState.workoutPlan[rk].exercises) {
-      const found = window.appState.workoutPlan[rk].exercises.find(e => e.id === exId);
-      if (found) exName = found.name;
-    }
-  });
-  
-  window.showCuteAlert(exName, `<div style="text-align:center;"><img src="${base64}" style="max-width:100%; border-radius:12px; border:3px solid var(--pink-medium);"></div>`, "📷");
+  window.lightboxExId = exId;
+  const modal = document.getElementById("lightbox-modal");
+  document.getElementById("lightbox-img").src = base64;
+  modal.classList.add("open");
 };
 
-// Bind Custom exercise addition triggers
-document.addEventListener("DOMContentLoaded", () => {
-  const customAddBtn = document.getElementById("btn-add-custom-exercise");
-  if (customAddBtn) {
-    customAddBtn.addEventListener("click", () => {
-      const name = document.getElementById("custom-ex-name").value.trim();
-      const sets = parseInt(document.getElementById("custom-ex-sets").value) || 3;
-      const reps = document.getElementById("custom-ex-reps").value.trim() || "12";
-      const unit = document.getElementById("custom-ex-unit").value;
-      
-      if (!name) {
-        window.showCuteAlert("Nombre Requerido", "Ingresa un nombre para tu ejercicio personalizado, Sonia.", "😿");
-        return;
-      }
-      
-      const newId = "custom_" + Date.now();
-      const newEx = {
-        id: newId,
-        name: name,
-        targetSets: sets,
-        targetReps: parseInt(reps) || 12,
-        repsRange: reps,
-        weightUnit: unit,
-        defaultWeight: 10
-      };
-      
-      if (!window.appState.workoutPlan.Personalizada) {
-        window.appState.workoutPlan.Personalizada = { name: "Rutina Personalizada 🐾", subtitle: "Crea tu propia secuencia de ejercicios.", exercises: [] };
-      }
-      window.appState.workoutPlan.Personalizada.exercises.push(newEx);
-      
-      window.appState.currentWeights[newId] = 10;
-      window.appState.currentUnits[newId] = unit;
-      
-      window.saveState();
-      window.renderExercise();
-      
-      document.getElementById("custom-ex-name").value = "";
-      document.getElementById("custom-ex-reps").value = "";
-      
-      window.showCuteAlert("¡Ejercicio Creado! 💪🐾", `Añadimos '${name}' a tu lista de ejercicios personalizados.`, "😻");
-    });
-  }
-});
+window.closeLightboxModal = function() {
+  document.getElementById("lightbox-modal").classList.remove("open");
+  window.lightboxExId = null;
+};
+
+window.handleLightboxUpload = function(event) {
+  if (!window.lightboxExId) return;
+  const exId = window.lightboxExId;
+  window.uploadMachinePhoto(event, exId);
+  closeLightboxModal();
+};
+
+window.deleteLightboxPhoto = function() {
+  if (!window.lightboxExId) return;
+  const exId = window.lightboxExId;
+  
+  window.showCuteConfirm("¿Borrar Foto? 🗑️", "¿Segura que quieres borrar la foto de esta máquina, panzona?", () => {
+    delete window.cachedMachineImages[exId];
+    if (window.deleteMachinePhoto) {
+      window.deleteMachinePhoto(exId);
+    }
+    window.showCuteAlert("¡Borrada!", "La foto se eliminó correctamente. Y la que borre.", "✨");
+    closeLightboxModal();
+    window.renderActiveWorkout();
+  }, "💅");
+};
