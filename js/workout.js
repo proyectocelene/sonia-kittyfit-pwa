@@ -526,7 +526,7 @@ window.uploadMachinePhoto = function(event, exId) {
     const img = new Image();
     img.onload = function() {
       const canvas = document.createElement("canvas");
-      const maxDim = 300;
+      const maxDim = 1200;
       let w = img.width;
       let h = img.height;
       if (w > h) {
@@ -540,7 +540,7 @@ window.uploadMachinePhoto = function(event, exId) {
       const ctx = canvas.getContext("2d");
       ctx.drawImage(img, 0, 0, w, h);
       
-      const compressedBase64 = canvas.toDataURL("image/jpeg", 0.7);
+      const compressedBase64 = canvas.toDataURL("image/jpeg", 0.85);
       
       if (window.saveMachinePhoto) {
         window.saveMachinePhoto(exId, compressedBase64).then(() => {

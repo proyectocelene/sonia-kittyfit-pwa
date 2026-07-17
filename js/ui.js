@@ -277,6 +277,11 @@ window.renderStats = function() {
     container.appendChild(cell);
   });
   
+  // Scroll to the end (today's date)
+  setTimeout(() => {
+    container.scrollLeft = container.scrollWidth;
+  }, 50);
+  
   const tableBody = document.getElementById("history-table-body");
   tableBody.innerHTML = "";
   

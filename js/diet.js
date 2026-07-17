@@ -89,23 +89,34 @@ window.renderDiet = function() {
     const mealKey = meal.name.replace(/\s+/g, '');
     const pTargets = window.appState.mealPortions[mealKey] || {};
     
+    todayLog.mealChipsChecked = todayLog.mealChipsChecked || {};
     let portionTagsHTML = "";
     Object.keys(pTargets).forEach(pKey => {
-      const pVal = pTargets[pKey];
+      let pVal = pTargets[pKey];
+      if (isAlto && meal.name === "Comida" && pKey === "cereales") pVal += 1;
+      if (isAlto && meal.name === "Comida" && pKey === "animal") pVal += 1;
+      
       if (pVal > 0) {
-        let label = "";
+        let labelBase = "";
         let chipClass = "";
-        if (pKey === "verduras") { label = `🟢 ${pVal} Verduras`; chipClass = "chip-ver"; }
-        if (pKey === "frutas") { label = `🍎 ${pVal} Frutas`; chipClass = "chip-fru"; }
-        if (pKey === "cereales") { label = `🌾 ${pVal} Carbohidratos s/g`; chipClass = "chip-cer"; }
-        if (pKey === "animal") { label = `🍗 ${pVal} Proteína Baja en Grasa`; chipClass = "chip-pro"; }
-        if (pKey === "leguminosas") { label = `🫘 ${pVal} Leguminosas`; chipClass = "chip-leg"; }
-        if (pKey === "leche") { label = `🥛 ${pVal} Lácteos Descremados`; chipClass = "chip-lac"; }
-        if (pKey === "grasas") { label = `🥑 ${pVal} Grasas Saludables`; chipClass = "chip-gra"; }
-        if (pKey === "cerealesGrasa") { label = `🍩 ${pVal} Carbohidratos c/g`; chipClass = "chip-cer"; }
-        if (pKey === "grasasProteina") { label = `🥜 ${pVal} Grasas c/proteína`; chipClass = "chip-gra"; }
+        if (pKey === "verduras") { labelBase = `🟢 Verdura`; chipClass = "chip-ver"; }
+        if (pKey === "frutas") { labelBase = `🍎 Fruta`; chipClass = "chip-fru"; }
+        if (pKey === "cereales") { labelBase = `🌾 Carbohidrato s/g`; chipClass = "chip-cer"; }
+        if (pKey === "animal") { labelBase = `🍗 Proteína`; chipClass = "chip-pro"; }
+        if (pKey === "leguminosas") { labelBase = `🫘 Leguminosa`; chipClass = "chip-leg"; }
+        if (pKey === "leche") { labelBase = `🥛 Lácteo`; chipClass = "chip-lac"; }
+        if (pKey === "grasas") { labelBase = `🥑 Grasa`; chipClass = "chip-gra"; }
+        if (pKey === "cerealesGrasa") { labelBase = `🍩 Carbohidrato c/g`; chipClass = "chip-cer"; }
+        if (pKey === "grasasProteina") { labelBase = `🥜 Grasa c/p`; chipClass = "chip-gra"; }
         
-        portionTagsHTML += `<span class="portion-chip ${chipClass}">${label}</span>`;
+        for (let i = 0; i < pVal; i++) {
+          const chipId = `${meal.name}_${pKey}_${i}`;
+          const isChecked = todayLog.mealChipsChecked[chipId];
+          const checkedClass = isChecked ? "chip-checked" : "";
+          const checkedIcon = isChecked ? "✅ " : "";
+          
+          portionTagsHTML += `<button class="portion-chip ${chipClass} interactive-chip ${checkedClass}" style="font-family: var(--font-body);" onclick="event.stopPropagation(); window.toggleMealPortionChip('${meal.name}', '${pKey}', ${i})" title="Marcar/Desmarcar">${checkedIcon}${labelBase}</button>`;
+        }
       }
     });
 
@@ -136,7 +147,7 @@ window.renderDiet = function() {
         <textarea id="manual-meal-input-${mealId}" placeholder="¿Qué comiste en el ${meal.name.toLowerCase()}? Ej. 5 rebanadas de pizza..." style="width: 100%; min-height: 60px; padding: 10px; border-radius: 8px; border: 1px solid var(--pink-soft); margin-bottom: 12px; font-family: var(--font-body); resize: vertical;"></textarea>
 
         <div class="meal-actions-row" style="flex-wrap: wrap; gap: 8px;">
-          <button class="btn-primary" style="flex: 1;" onclick="window.logMealWithAI('${meal.name}', '${mealId}')" title="Analizar y Registrar con IA">
+          <button class="btn-primary" style="flex: 1; font-size: 0.72rem; padding: 6px 8px; min-height: 32px;" onclick="window.logMealWithAI('${meal.name}', '${mealId}')" title="Analizar y Registrar con IA">
             <i class="fa-solid fa-wand-magic-sparkles"></i> Registrar con IA
           </button>
           <button class="btn-secondary" style="flex: 1;" onclick="window.searchGoogleRecipes('${meal.name}')" title="Buscar recetas en Google">
@@ -176,7 +187,6 @@ function renderPortionSummaryRings(todayLog, targetPortions) {
   ringCategories.forEach(cat => {
     const target = targetPortions[cat.key] || 0;
     const consumed = eaten[cat.key] || 0;
-    const remaining = Math.max(0, target - consumed);
     const pct = target > 0 ? Math.min(consumed / target, 1) : 0;
     
     const size = 48;
@@ -194,9 +204,9 @@ function renderPortionSummaryRings(todayLog, targetPortions) {
           stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"
           transform="rotate(-90 ${size/2} ${size/2})" />
         <text x="${size/2}" y="${size/2}" text-anchor="middle" dominant-baseline="central"
-          font-size="10" font-weight="700" fill="currentColor">${cat.emoji}</text>
+          font-size="18" font-weight="700" fill="currentColor">${cat.emoji}</text>
       </svg>
-      <span class="portion-ring-value">${remaining}/${target}</span>
+      <span class="portion-ring-value">${consumed}/${target}</span>
       <span class="portion-ring-label">${cat.label}</span>
     `;
     container.appendChild(card);
@@ -210,6 +220,36 @@ window.toggleMealExpand = function(mealId) {
   } else {
     document.querySelectorAll(".meal-item-card").forEach(c => c.classList.remove("open"));
     card.classList.add("open");
+  }
+};
+
+window.toggleMealPortionChip = function(mealName, pKey, index) {
+  const todayStr = window.getTodayDateString();
+  const todayLog = window.appState.history.find(h => h.date === todayStr);
+  todayLog.mealChipsChecked = todayLog.mealChipsChecked || {};
+  const chipId = `${mealName}_${pKey}_${index}`;
+  
+  if (todayLog.mealChipsChecked[chipId]) {
+    // Uncheck
+    todayLog.mealChipsChecked[chipId] = false;
+    todayLog.smaeEaten[pKey] = Math.max(0, (todayLog.smaeEaten[pKey] || 0) - 1);
+  } else {
+    // Check
+    todayLog.mealChipsChecked[chipId] = true;
+    todayLog.smaeEaten[pKey] = (todayLog.smaeEaten[pKey] || 0) + 1;
+  }
+  
+  window.saveState();
+  
+  // Preserve open meal card
+  const openCard = document.querySelector('.meal-item-card.open');
+  const openId = openCard ? openCard.id : null;
+  
+  window.renderDiet();
+  
+  if (openId) {
+    const cardToOpen = document.getElementById(openId);
+    if (cardToOpen) cardToOpen.classList.add('open');
   }
 };
 
